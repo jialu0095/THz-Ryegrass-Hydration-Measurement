@@ -2,17 +2,20 @@ import numpy as np
 import matplotlib.pyplot as plt
 from terasense import processor
 
+# The img have to be rotate 180 degrees to get the original pattern
 def save_image(data, filename='terahertz_image.png', rotate=True, mirror=False):
     """Save the numpy array data as an image with optional rotate and mirror."""
     if rotate:
-        data = np.rot90(data)  # Rotate the image (90 degrees)
+        # Rotate the image (180 degrees)
+        data = np.rot90(data)  
+        data = np.rot90(data)  
     if mirror:
         data = np.fliplr(data)  # Mirror the image horizontally
-    plt.imshow(data, cmap='viridis')  # Display the data as a pesudo color img
+    # plt.imshow(data, cmap='viridis')  # Display the data as a pesudo color img
     plt.imshow(data, cmap='grey')  # Display the data as a grey scale img
     plt.colorbar()  # Add a color bar to indicate the scale
-    plt.savefig(filename)  # Save the figure to a file
-    plt.close()  # Close the figure to free up memory
+    plt.savefig(filename)  
+    plt.close()  # Close the figure
 
 def save_data_to_npy(data, filename='thz_data.npy'):
     """Save the numpy array data to a npy file."""
@@ -20,8 +23,7 @@ def save_data_to_npy(data, filename='thz_data.npy'):
 
 def save_data_to_txt(data, filename='thz_data.txt'):
     """Save the numpy array data to a text file."""
-    np.savetxt(filename, data, fmt='%f')  # You can change the format specifier if needed
-
+    np.savetxt(filename, data, fmt='%f')  
 
 
 def main():
