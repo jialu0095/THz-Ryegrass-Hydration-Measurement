@@ -3,14 +3,16 @@ import matplotlib.pyplot as plt
 from terasense import processor
 
 # The img have to be rotate 180 degrees to get the original pattern
-def save_image(data, filename='terahertz_image.png', rotate=True, mirror=False):
+def save_image(data, filename='terahertz_image.png', rotate=True, mirror=True):
     """Save the numpy array data as an image with optional rotate and mirror."""
     if rotate:
-        # Rotate the image (180 degrees)
+        # Rotate the image (270 degrees)
+        data = np.rot90(data)  
         data = np.rot90(data)  
         data = np.rot90(data)  
     if mirror:
-        data = np.fliplr(data)  # Mirror the image horizontally
+        # Mirror the image horizontally
+        data = np.fliplr(data)  
     # plt.imshow(data, cmap='viridis')  # Display the data as a pesudo color img
     plt.imshow(data, cmap='grey')  # Display the data as a grey scale img
     plt.colorbar()  # Add a color bar to indicate the scale
@@ -40,9 +42,9 @@ def main():
             print("Max value:", data.max())
             print("Min value:", data.min())
             # save_image(data, filename='thz_img_viridis.png')
-            save_image(data, filename='thz_img_grey_book.png')
+            save_image(data, filename='thz_img_grey_script_plant.png')
             # save_data_to_npy(data, filename='thz_data.npy')
-            save_data_to_txt(data, filename='thz_data_book.txt')
+            save_data_to_txt(data, filename='thz_data_script_plant.txt')
         else:
             print("No data was read. Check the camera connection and settings.")
     
