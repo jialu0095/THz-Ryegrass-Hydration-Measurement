@@ -13,8 +13,8 @@ def save_image(data, filename='terahertz_image.png', rotate=True, mirror=True):
     if mirror:
         # Mirror the image horizontally
         data = np.fliplr(data)  
-    # plt.imshow(data, cmap='viridis')  # Display the data as a pesudo color img
-    plt.imshow(data, cmap='grey')  # Display the data as a grey scale img
+    plt.imshow(data, cmap='viridis')  # Display the data as a pesudo color img
+    # plt.imshow(data, cmap='grey')  # Display the data as a grey scale img
     plt.colorbar()  # Add a color bar to indicate the scale
     plt.savefig(filename)  
     plt.close()  # Close the figure
@@ -41,8 +41,8 @@ def main():
             print("Data shape:", data.shape)
             print("Max value:", data.max())
             print("Min value:", data.min())
-            # save_image(data, filename='thz_img_viridis.png')
-            save_image(data, filename='thz_img_grey_script_plant.png')
+            save_image(data, filename='thz_img_viridis_script_plant.png')
+            # save_image(data, filename='thz_img_grey_script_plant.png')
             # save_data_to_npy(data, filename='thz_data.npy')
             save_data_to_txt(data, filename='thz_data_script_plant.txt')
         else:
@@ -51,7 +51,7 @@ def main():
         print("Data acquired")
 
     finally:
-        # Perform any necessary cleanup here
+        # cleanup
         pass
 
 if __name__ == '__main__':
