@@ -8,3 +8,6 @@ a) THz spectroscopy measurements of a large variety of ryegrass plants with
 different morphology and genotype. 
 b) Code-based automated analysis of the acquired data with insight into 
 reproducibility and uncertainty analysis. 
+
+Naming:
+thz_data/script
