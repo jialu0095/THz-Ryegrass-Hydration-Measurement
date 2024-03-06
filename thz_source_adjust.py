@@ -8,7 +8,7 @@ print('com4 is open', serialPort.isOpen())
 serialPort.write(b'*IDN?\r')     ### you've used "read" wrongly
 res = serialPort.read(100)    
 
-serialPort.write(b':OUTP:ATT 3\r')              
+serialPort.write(b':OUTP:ATT 10\r')              
 
 res = serialPort.read(100)            ###   you always need to read a response after the write even if the command does not return anything.
 

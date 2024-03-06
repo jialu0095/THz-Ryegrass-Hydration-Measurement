@@ -2,22 +2,23 @@ import numpy as np
 import matplotlib.pyplot as plt
 from terasense import processor
 
-# The img have to be rotate 180 degrees to get the original pattern
+# img have to be rotate 180 degrees to get the original pattern
 def save_image(data, filename='terahertz_image.png', rotate=True, mirror=True):
     """Save the numpy array data as an image with optional rotate and mirror."""
     if rotate:
-        # Rotate the image (270 degrees)
+        # rotate the image (270 degrees)
         data = np.rot90(data)  
         data = np.rot90(data)  
         data = np.rot90(data)  
     if mirror:
-        # Mirror the image horizontally
+        # mirror the image horizontally
         data = np.fliplr(data)  
-    plt.imshow(data, cmap='viridis')  # Display the data as a pesudo color img
-    # plt.imshow(data, cmap='grey')  # Display the data as a grey scale img
-    plt.colorbar()  # Add a color bar to indicate the scale
+    max, min = np.amax(data),np.amin(data)
+    plt.imshow(data, cmap='jet',vmax=max, vmin=min)  # display the data as a pesudo color img
+    # plt.imshow(data, cmap='grey')  # display the data as a grey scale img
+    plt.colorbar()  
     plt.savefig(filename)  
-    plt.close()  # Close the figure
+    plt.close()  
 
 def save_data_to_npy(data, filename='thz_data.npy'):
     """Save the numpy array data to a npy file."""
@@ -29,12 +30,12 @@ def save_data_to_txt(data, filename='thz_data.txt'):
 
 
 def main():
-    # Initialize an instance of the processor class in single-threaded mode
+    # single-threaded mode instance
     proc = processor.processor(threaded=False)
 
     try:
-        # Start data acquisition without threading
-        data = proc.read()  # This call will block until data is available
+        # start data acquisition without threading
+        data = proc.read() 
         if data is not None:
             print("Data acquired")
             print("Data type:", data.dtype)
