@@ -26,24 +26,43 @@ res = serialPort.read(100)  # read response
 proc = processor.processor(threaded=False)
 
 try:
-    for i in range(0, 10, 3):
+    print("-----------------------------------")
+    # collect average data values and attenuation
+    attenuation_values = []
+    average_values = []
+
+    for i in range(0, 40, 1):
         # alter attenuation
         set_attenuation(serialPort, i)
         attenuation_value = query_attenuation(serialPort)
         print_attenuation(attenuation_value)
 
-        data = proc.read()  # get img data
+        # get average img data
+        data = proc.read()
+        average_value = np.mean(data)
+        # average_value = data[15][15]
+        # average_value = np.mean(data[10:22, 10:22])
+        print("Average value:", average_value)
         print("Max value:", data.max())
-        
+        print("-----------------------------------")
+
+        # collect data
+        attenuation_values.append(attenuation_value)
+        average_values.append(average_value)
+
+    # Plot attenuation against value
+    plt.plot(attenuation_values, average_values)
+    plt.xlabel("Attenuation (dB)")
+    plt.ylabel("Average Data Value [0,1]")
+    plt.show()
     
-    # data = proc.read()  # get img data
-    # print("Data shape:", data.shape)
-    # print("Max value:", data.max())
-    # print("Min value:", data.min())
-    # # np.savetxt('thz_data_API.txt', data, fmt='%f')  
+
+
     
 except ValueError:
     print("Error reading attenuation value:", res.decode().strip())
+finally:
+    set_attenuation(serialPort, 0)
 
 # close the serial port
 serialPort.close()
