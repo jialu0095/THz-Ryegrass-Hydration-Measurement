@@ -14,7 +14,11 @@ tau_2=0.18*1e-12
 ########################
 freq=np.linspace(0.05,1,1000)*1e12
 # Look up parameters at this frequency ####
+
+# frequecy: 0.1 THz
 f_search=0.1*1e12
+
+
 omega=2*np.pi*freq
 eps=eps_inf+(eps_1-eps_2)/(1+1j*tau_1*omega)+(eps_2-eps_inf)/(1+1j*tau_2*omega)
 eps_r=np.real(eps)

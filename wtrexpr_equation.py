@@ -29,10 +29,11 @@ def calculate_alpha(I_ref, I_smp, dB_ref, dB_smp, d_H2O):
     return alpha
 # alpha = calculate_alpha(I_ref, I_smp, dB_ref, dB_smp, d_H2O)
 
-#%%
 def calculate_alpha_batch(ref_file_name, smp_file_name, d_H2O, dB_ref, dB_smp, type='all'):
     ref_data = np.loadtxt(ref_file_name, delimiter=',', comments='#')
     smp_data = np.loadtxt(smp_file_name, delimiter=',', comments='#')
+    # ref_data = np.sort(ref_data)[::-1]
+    # smp_data = np.sort(smp_data)[::-1]
 
     # de-dimension to 1 dim
     ref_data = ref_data.flatten()
@@ -54,19 +55,22 @@ def calculate_alpha_batch(ref_file_name, smp_file_name, d_H2O, dB_ref, dB_smp, t
     alpha = calculate_alpha(I_ref, I_smp, dB_ref, dB_smp, d_H2O)
     std_dev = np.std(alpha)
 
+    np.set_printoptions(precision=2, suppress=True)
+
+
     print(I_ref)
     print(I_smp)
     print(alpha)
     print(np.mean(alpha))
     print(std_dev)
+    return I_ref, I_smp, alpha
 
-    return alpha
 
 #%%
 ## 0.02 cuvette
 # alpha calculate_alpha_batch('ref_02_dB1606.dat', 'smp_02_dB1390.dat', 0.02, 16.06, 13.90, type='all')
 ## 0.05 cuvette
-alpha = calculate_alpha_batch('ref_05_dB1190.dat', 'smp_05_dB1110.dat', 0.05, 11.90, 11.10, type='all')
+I_ref, I_smp, alpha = calculate_alpha_batch('ref_02_dB1607.dat', 'smp_02_dB1390.dat', 0.02, 16.07, 13.90, type='all')
 
 # %%
 import matplotlib.pyplot as plt
@@ -106,7 +110,7 @@ print(element_counts)
 plt.scatter(range(len(alpha)), alpha, c=labels)
 plt.xlabel('Data Point')
 plt.ylabel('Alpha')
-plt.title('Alpha Values with Clustering')
+plt.title('Alpha Values with Clustering(d_H2O=0.05)')
 plt.legend()
 
 # fit line
@@ -114,4 +118,60 @@ fit_coeffs = np.polyfit(range(len(alpha)), alpha, 1)
 fit_line = np.polyval(fit_coeffs, range(len(alpha)))
 plt.plot(range(len(alpha)), fit_line, color='red', label='Fit Line')
 plt.show()
+
+# identify outliers
+outliers = np.abs(alpha - np.mean(alpha)) > 2 * np.std(alpha)
+
+# plot outliers
+plt.scatter(np.where(outliers)[0], alpha[outliers], color='red', label='Outliers')
+plt.xlabel('Data Point')
+plt.ylabel('Alpha')
+plt.title('Alpha Values with Outliers')
+plt.legend()
+plt.show()
+
+# %%
+exceed_60_indices = np.where(alpha > 60)[0]
+print(exceed_60_indices)
+print(I_ref[exceed_60_indices])
+print(I_smp[exceed_60_indices])
+print(alpha[exceed_60_indices])
+print(I_ref[exceed_60_indices] / I_smp[exceed_60_indices])
+import matplotlib.pyplot as plt
+
+plt.figure(figsize=(15, 5))
+
+plt.subplot(1, 3, 1)
+plt.scatter(exceed_60_indices, I_ref[exceed_60_indices])
+plt.xlabel('Data Point')
+plt.ylabel('I_smp')
+plt.title('I_ref Values Exceeding 60')
+
+plt.subplot(1, 3, 2)
+plt.scatter(exceed_60_indices, I_smp[exceed_60_indices])
+plt.xlabel('Data Point')
+plt.ylabel('I_smp')
+plt.title('I_smp Values Exceeding 60')
+
+plt.subplot(1, 3, 3)
+plt.scatter(exceed_60_indices, alpha[exceed_60_indices])
+plt.xlabel('Data Point')
+plt.ylabel('I_smp')
+plt.title('Alpha Values Exceeding 60')
+
+plt.tight_layout()
+plt.show()
+
+# %%
+# print(I_ref)
+# print(I_smp)
+# print(alpha)
+I_rtio = I_ref / I_smp
+# print(I_rtio)
+
+I_rtio_sort_indices = np.argsort(I_rtio)[::-1]
+print(I_ref[I_rtio_sort_indices])
+print(I_smp[I_rtio_sort_indices])
+print(alpha[I_rtio_sort_indices])
+print(I_rtio[I_rtio_sort_indices])
 # %%
