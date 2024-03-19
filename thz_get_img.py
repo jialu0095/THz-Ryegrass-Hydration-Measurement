@@ -42,10 +42,12 @@ def main():
             print("Data shape:", data.shape)
             print("Max value:", data.max())
             print("Min value:", data.min())
-            save_image(data, filename='thz_img_viridis_script_plant.png')
             # save_image(data, filename='thz_img_grey_script_plant.png')
             # save_data_to_npy(data, filename='thz_data.npy')
-            save_data_to_txt(data, filename='thz_data_script_plant.txt')
+            # save_data_to_txt(data, filename='thz_data_script_plant.txt')
+            save_image(data, filename='thz_img_API_45cm.png')
+            save_data_to_txt(data, filename='thz_data_API_45cm.txt')
+
         else:
             print("No data was read. Check the camera connection and settings.")
     

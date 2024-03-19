@@ -72,14 +72,27 @@ def calculate_alpha_batch(ref_file_name, smp_file_name, d_H2O, dB_ref, dB_smp, t
 ## 0.05 cuvette
 I_ref, I_smp, alpha = calculate_alpha_batch('ref_02_dB1607.dat', 'smp_02_dB1390.dat', 0.02, 16.07, 13.90, type='all')
 
-# %%
+# %% sorted alpha values
+# print(I_ref)
+# print(I_smp)
+# print(alpha)
+I_rtio = I_ref / I_smp
+# print(I_rtio)
+
+I_rtio_sort_indices = np.argsort(I_rtio)[::-1]
+print(I_ref[I_rtio_sort_indices])
+print(I_smp[I_rtio_sort_indices])
+print(alpha[I_rtio_sort_indices])
+print(I_rtio[I_rtio_sort_indices])
+
+# %% scattor plot
 import matplotlib.pyplot as plt
 plt.scatter(range(len(alpha)), alpha)
 plt.xlabel('Data Point')
 plt.ylabel('Alpha')
 plt.title('Alpha Values')
 plt.show()
-# %%
+# %% classification
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
@@ -130,7 +143,7 @@ plt.title('Alpha Values with Outliers')
 plt.legend()
 plt.show()
 
-# %%
+# %% overall plot
 exceed_60_indices = np.where(alpha > 60)[0]
 print(exceed_60_indices)
 print(I_ref[exceed_60_indices])
@@ -162,16 +175,5 @@ plt.title('Alpha Values Exceeding 60')
 plt.tight_layout()
 plt.show()
 
-# %%
-# print(I_ref)
-# print(I_smp)
-# print(alpha)
-I_rtio = I_ref / I_smp
-# print(I_rtio)
 
-I_rtio_sort_indices = np.argsort(I_rtio)[::-1]
-print(I_ref[I_rtio_sort_indices])
-print(I_smp[I_rtio_sort_indices])
-print(alpha[I_rtio_sort_indices])
-print(I_rtio[I_rtio_sort_indices])
 # %%
