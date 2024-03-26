@@ -32,8 +32,8 @@ res = serialPort.read(100)  # read response
 proc = processor.processor(threaded=False)
 
 # set the accumulation
-proc.SetAccumulation(True)
-proc.SetAccuLength(1000)
+# proc.SetAccumulation(True)
+# proc.SetAccuLength(1000)
 
 # worker instance
 worker = terasense.worker.Worker()
