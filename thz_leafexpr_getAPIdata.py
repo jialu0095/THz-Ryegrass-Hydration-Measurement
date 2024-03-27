@@ -40,10 +40,10 @@ worker = terasense.worker.Worker()
 worker.SetGamma(1)
 
 # set the working area
-x_left = 6
+x_left = 5
 x_right = 26
-y_top = 7
-y_bottom = 15
+y_top = 8
+y_bottom = 23
 
 x_shape = x_right - x_left + 1
 y_shape = y_bottom - y_top + 1
@@ -59,11 +59,14 @@ n_pixels = (x_right - x_left + 1) * (y_bottom - y_top  + 1)
 alphas = []
 d_H2O = 0.02
 saturated_threshold = 0.5
-start_attenuation_value = 15
-attenuation_step = 0.4
+start_attenuation_value = 5
+attenuation_step = 0.1
 top_elements = 10
 
 test_group = 'dry'
+wet_title = "wet10"
+
+dry_title = "dry"
 
 try:
     print("-----------------------------------")
@@ -85,8 +88,8 @@ try:
         
         
         # break when avrg intensity just not saturated
-        print(np.mean(np.sort(data)[-top_elements:]))
-        if(np.mean(np.sort(data)[-top_elements:]) > saturated_threshold):
+        print(np.mean(data))
+        if(np.mean(data) > saturated_threshold):
             break
 
         # stronger beam
@@ -100,17 +103,17 @@ try:
     Is = np.rot90(Is)
     Is = np.fliplr(Is) 
     if(test_group == 'wet'):
-        np.savetxt('I_wets', Is, fmt='%f')
+        np.savetxt(wet_title, Is, fmt='%f')
         plt.imshow(Is, cmap='jet')  # display the data as a pesudo color img
         plt.colorbar()  
-        plt.title('Wet Sample')
+        plt.title(wet_title)
         plt.show()
         # plt.close()
     elif(test_group == 'dry'):
-        np.savetxt('I_drys', Is, fmt='%f')
+        np.savetxt(dry_title, Is, fmt='%f')
         plt.imshow(Is, cmap='jet')  # display the data as a pesudo color img
         plt.colorbar()  
-        plt.title('Dry Reference 5')
+        plt.title(dry_title)
         plt.show()
         # plt.close()
     
