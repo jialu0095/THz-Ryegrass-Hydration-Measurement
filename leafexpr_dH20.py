@@ -12,22 +12,22 @@ def calculate_dH20(I_ref, I_smp, dB_ref, dB_smp):
     return d_H20
 
 time = []
-dry_time = 7
+dry_time = 10
 for i in range(dry_time):
     time.append(i+1)
 
 # expr data
-wet_weight = [0.6833,0.6383,0.6236,0.6143,0.6050,0.5953,0.5861]
-dry_weight = [0.5763,0.5763,0.5763,0.5763,0.5763,0.5763,0.5763]
+wet_weight = [0.9313,0.9080,0.8865,0.8670,0.8470,0.8225,0.8035,0.7835,0.7676,0.7540]
+dry_weight = [0.6510,0.6510,0.6510,0.6510,0.6510,0.6510,0.6510,0.6510,0.6510,0.6510]
 
-wet_attenuation = [3.4,3.4,3.4,3.8,3.8,4.2,4.2]
-dry_attenuation = [4.2,4.2,4.2,4.2,4.2,4.2,4.2]
+wet_attenuation = [1.6,1.6,1.8,1.8,2.1,2.1,2.2,2.4,2.5,2.4]
+dry_attenuation = [3.2,3.2,3.2,3.2,3.2,3.2,3.2,3.2,3.2,3.2]
 
-wet_pixel = [0.485,0.477,0.492,0.475,0.478,0.473,0.479]
-dry_pixel = [0.479,0.479,0.479,0.479,0.479,0.479,0.479]
+wet_pixel = [0.498,0.494,0.474,0.496,0.494,0.499,0.4997,0.495,0.494,0.499]
+dry_pixel = [0.496,0.496,0.496,0.496,0.496,0.496,0.496,0.496,0.496,0.496]
 
 # expr variables
-fresh_weight = 0.6833
+fresh_weight = 0.9192
 wet_weight = np.array(wet_weight)
 dry_weight = np.array(dry_weight)
 
@@ -48,20 +48,42 @@ print(RWC_gravimetric)
 print(dH20)
 
 # plots
-plt.subplot(2, 1, 1)
-plt.scatter(time, RWC_gravimetric, label='Gravimetric')
+# plt.subplot(2, 1, 1)
+# plt.scatter(time, RWC_gravimetric, label='Gravimetric')
+# plt.xlabel('Time')
+# plt.ylabel('RWC (%)')
+# plt.title('RWC vs Time')
+# plt.legend()
+
+# plt.subplot(2, 1, 2)
+# plt.scatter(time, RWC_THz, label='dH20')
+# plt.xlabel('Time')
+# plt.ylabel('dH20')
+# plt.title('dH20 vs Time')
+# plt.legend()
+# plt.figure()
+
+plt.scatter(time, RWC_gravimetric, label='Gravimetric', color='black')
+plt.scatter(time, RWC_THz, label='THz', color='green')
 plt.xlabel('Time')
-plt.ylabel('RWC (%)')
+plt.ylabel('Value')
 plt.title('RWC vs Time')
 plt.legend()
-
-plt.subplot(2, 1, 2)
-plt.scatter(time, RWC_THz, label='dH20')
-plt.xlabel('Time')
-plt.ylabel('dH20')
-plt.title('dH20 vs Time')
-plt.legend()
-
 plt.tight_layout()
 plt.show()
 
+# std for error bars
+# std_dev_gravimetric = np.std(RWC_gravimetric)
+# std_dev_THz = np.std(RWC_THz)
+
+# print(std_dev_gravimetric)
+# print(std_dev_THz)
+
+# plt.errorbar(time, RWC_gravimetric, yerr=std_dev_gravimetric, fmt='o', label='Gravimetric')
+# plt.errorbar(time, RWC_THz, yerr=std_dev_THz, fmt='o', label='dH20')
+# plt.xlabel('Time')
+# plt.ylabel('Value')
+# plt.title('RWC and dH20 vs Time')
+# plt.legend()
+# plt.tight_layout()
+# plt.show()
