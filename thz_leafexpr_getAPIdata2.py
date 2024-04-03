@@ -62,11 +62,22 @@ saturated_threshold = 0.5
 start_attenuation_value = 12.5
 attenuation_step = 0.1
 top_elements = 10
+nonsat_pixel_value = 0
+
+I_drys = []
+I_wets = []
+
+dB_drys = []
+dB_wets = []
 
 test_group = 'dry'
-wet_title = "wet10"
+group_number = "1"
 
-dry_title = "dry"
+wet_I_title = "wet_I" + group_number
+wet_dB_title = "wet_dB"+ group_number
+
+dry_I_title = "dry"
+dry_dB_title = "dry"
 
 try:
     print("-----------------------------------")
@@ -80,42 +91,60 @@ try:
     data = proc.read()[x_left:(x_right+1), y_top:(y_bottom+1)].flatten() - bg_data
     Is = proc.read()[x_left:(x_right+1), y_top:(y_bottom+1)].flatten() - bg_data
 
-    while True:
-        set_attenuation(serialPort, start_attenuation_value - attenuation_step)
+    # pixel by pixel data collection
+    for pixel in range(0, n_pixels):
+        set_attenuation(serialPort, start_attenuation_value)
         attenuation_value = query_attenuation(serialPort)
+        print("-----------------------------------")
         print_attenuation(attenuation_value)
-        data = proc.read()[x_left:(x_right+1), y_top:(y_bottom+1)].flatten() - bg_data
-        
-        
-        # break when avrg intensity just not saturated
-        print(np.mean(data))
-        if(np.mean(data) > saturated_threshold):
-            break
+        print("Pixel:", pixel, "of", n_pixels, "pixels")
 
-        # stronger beam
-        Is = proc.read()[x_left:(x_right+1), y_top:(y_bottom+1)].flatten() - bg_data
-        start_attenuation_value -= attenuation_step   
+        # collect pixel value and atnu of just not saturated pixel
+        flag = True
+        while flag:
+            set_attenuation(serialPort, attenuation_value-attenuation_step)  # alter attenuation
+            attenuation_value = query_attenuation(serialPort)
+            
+            data = proc.read()
+            pixel_value = data[x_left:(x_right+1), y_top:(y_bottom+1)].flatten()
+            pixel_value = pixel_value - bg_data
+            pixel_value = pixel_value[pixel]
+
+            # if saturated, then stop
+            print(pixel_value, attenuation_value, flag)
+            if(pixel_value > saturated_threshold or attenuation_value <= attenuation_step):
+                if test_group == 'wet':   
+                    I_wets.append(nonsat_pixel_value)
+                    dB_wets.append(attenuation_value)
+                    flag = False
+                elif test_group == 'dry':
+                    I_drys.append(nonsat_pixel_value) 
+                    dB_drys.append(attenuation_value)
+                    flag = False
+
+            if(flag):
+                nonsat_pixel_value = pixel_value
+                attenuation_value -= attenuation_step
 
     # save data files
+    if(test_group == 'wet'):
+        Is = np.array(I_wets)
+        np.savetxt(wet_I_title, I_wets, fmt='%f')
+        np.savetxt(wet_dB_title, dB_wets, fmt='%f')
+    elif(test_group == 'dry'):
+        Is = np.array(I_drys)
+        np.savetxt(dry_I_title, I_drys, fmt='%f')
+        np.savetxt(dry_dB_title, dB_drys, fmt='%f')
+    
+    # plot the data
     Is = Is.reshape((x_shape, y_shape))  # reshape for plot
     Is = np.rot90(Is)  
     Is = np.rot90(Is)  
     Is = np.rot90(Is)
     Is = np.fliplr(Is) 
-    if(test_group == 'wet'):
-        np.savetxt(wet_title, Is, fmt='%f')
-        plt.imshow(Is, cmap='jet')  # display the data as a pesudo color img
-        plt.colorbar()  
-        plt.title(wet_title)
-        plt.show()
-        # plt.close()
-    elif(test_group == 'dry'):
-        np.savetxt(dry_title, Is, fmt='%f')
-        plt.imshow(Is, cmap='jet')  # display the data as a pesudo color img
-        plt.colorbar()  
-        plt.title(dry_title)
-        plt.show()
-        # plt.close()
+    plt.imshow(Is, cmap='jet')  # display the data as a pesudo color img
+    plt.colorbar()  
+    plt.show()
     
 except ValueError:
     print("Error: ", ValueError)
