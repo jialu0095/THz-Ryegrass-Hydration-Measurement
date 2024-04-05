@@ -6,7 +6,7 @@ import serial
 import os
 
 # change working dir
-os.chdir('leaf_expr_API')
+os.chdir('leaf_expr_API_2')
 print(os.getcwd())
 
 def set_attenuation(serialPort, attenuation):
@@ -40,10 +40,10 @@ worker = terasense.worker.Worker()
 worker.SetGamma(1)
 
 # set the working area
-x_left = 5
-x_right = 26
-y_top = 8
-y_bottom = 23
+x_left = 13
+x_right = 22
+y_top = 12
+y_bottom = 18
 
 x_shape = x_right - x_left + 1
 y_shape = y_bottom - y_top + 1
@@ -59,7 +59,7 @@ n_pixels = (x_right - x_left + 1) * (y_bottom - y_top  + 1)
 alphas = []
 d_H2O = 0.02
 saturated_threshold = 0.5
-start_attenuation_value = 12.5
+start_attenuation_value = 2
 attenuation_step = 0.1
 top_elements = 10
 nonsat_pixel_value = 0
@@ -70,7 +70,7 @@ I_wets = []
 dB_drys = []
 dB_wets = []
 
-test_group = 'dry'
+test_group = 'wet'
 group_number = "1"
 
 wet_I_title = "wet_I" + group_number
