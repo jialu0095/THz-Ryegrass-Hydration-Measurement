@@ -40,31 +40,33 @@ worker = terasense.worker.Worker()
 worker.SetGamma(1)
 
 # set the working area
-x_left = 13
+x_left = 12
 x_right = 23
-y_top = 12
-y_bottom = 18
+y_top = 9
+y_bottom = 23
 
 x_shape = x_right - x_left + 1
 y_shape = y_bottom - y_top + 1
+
+working_index = np.loadtxt('working_index.txt', delimiter=' ', comments='#').astype(int)
 
 # set the background data
 bg_data = np.loadtxt('thz_bg_data.txt', delimiter=' ', comments='#')
 bg_data = bg_data[x_left:(x_right+1), y_top:(y_bottom+1)].flatten()
 
 # pixel number in the working area
-n_pixels = (x_right - x_left + 1) * (y_bottom - y_top  + 1)
+# n_pixels = (x_right - x_left + 1) * (y_bottom - y_top  + 1)
 
 # variables
 alphas = []
 d_H2O = 0.02
 saturated_threshold = 0.5
-start_attenuation_value = 6
+start_attenuation_value = 15
 attenuation_step = 0.1
 top_elements = 10
 
 test_group = 'dry'
-wet_title = "wet11"
+wet_title = "wet9"
 
 dry_title = "dry"
 
@@ -78,7 +80,9 @@ try:
 
     # remove bg noise
     data = proc.read()[x_left:(x_right+1), y_top:(y_bottom+1)].flatten() - bg_data
+    data = data[working_index]
     Is = proc.read()[x_left:(x_right+1), y_top:(y_bottom+1)].flatten() - bg_data
+    Is = Is[working_index]
 
     while True:
         set_attenuation(serialPort, start_attenuation_value - attenuation_step)
@@ -86,6 +90,8 @@ try:
         print_attenuation(attenuation_value)
         data = proc.read()[x_left:(x_right+1), y_top:(y_bottom+1)].flatten() - bg_data
         
+        data = data[working_index]
+
         # break when avrg intensity just not saturated
         print(np.mean(data))
         if(np.mean(data) > saturated_threshold):
@@ -93,23 +99,27 @@ try:
 
         # stronger beam
         Is = proc.read()[x_left:(x_right+1), y_top:(y_bottom+1)].flatten() - bg_data
-        start_attenuation_value -= attenuation_step   
+        Is = Is[working_index]
+        start_attenuation_value -= attenuation_step
 
-    # save data files
-    Is = Is.reshape((x_shape, y_shape))  # reshape for plot
-    Is = np.rot90(Is)  
-    Is = np.rot90(Is)  
-    Is = np.rot90(Is)
-    Is = np.fliplr(Is) 
+        if(start_attenuation_value <= 0.1):
+            break
+
+    # save data files (can't plot with polygon shape pixels)
+    # Is = Is.reshape((x_shape, y_shape))  # reshape for plot
+    # Is = np.rot90(Is)  
+    # Is = np.rot90(Is)  
+    # Is = np.rot90(Is)
+    # Is = np.fliplr(Is) 
     if(test_group == 'wet'):
-        np.savetxt(wet_title, Is, fmt='%f')
+        np.savetxt(wet_title+'.txt', Is, fmt='%f')
     #     plt.imshow(Is, cmap='jet')  # display the data as a pesudo color img
     #     plt.colorbar()  
     #     plt.title(wet_title)
     #     plt.show()
     #     # plt.close()
     elif(test_group == 'dry'):
-        np.savetxt(dry_title, Is, fmt='%f')
+        np.savetxt(dry_title+'.txt', Is, fmt='%f')
     #     plt.imshow(Is, cmap='jet')  # display the data as a pesudo color img
     #     plt.colorbar()  
     #     plt.title(dry_title)
