@@ -1,3 +1,4 @@
+#%%
 import numpy as np
 import numpy as np
 import matplotlib.pyplot as plt
@@ -5,24 +6,34 @@ import os
 
 os.chdir('leaf_expr_API')
 
+#%%
+# output: dH20(mm)
+dH20_unit = 'mm'
 def calculate_dH20(I_ref, I_smp, dB_ref, dB_smp):
     I_ref = np.array(I_ref)
     I_smp = np.array(I_smp)
     dB_ref = np.array(dB_ref)
     dB_smp = np.array(dB_smp)
     
-    d_H20 = (np.log(I_ref / I_smp) + 0.1*np.log(10) * (dB_ref - dB_smp)) / 85
+    dH20 = (np.log(I_ref / I_smp) + 0.1*np.log(10) * (dB_ref - dB_smp)) / 85 # cm
+    dH20 *= 10 # cm to mm
+    # mm to um
+    if dH20_unit == 'um':
+        dH20 *= 1000
 
     # remove -inf nan values
-    valid_values_mean = np.nanmean(np.where(d_H20 == -np.inf, np.nan, d_H20))
-    d_H20 = np.where(np.isneginf(d_H20) | np.isnan(d_H20), valid_values_mean, d_H20)
+    valid_values_mean = np.nanmean(np.where(dH20 == -np.inf, np.nan, dH20))
+    dH20 = np.where(np.isneginf(dH20) | np.isnan(dH20), valid_values_mean, dH20)
 
-    return d_H20
+    return dH20
 
+#%%
+# time for drying up the leaves
 time = []
 dry_time = 11
+time_lap = 4
 for i in range(dry_time):
-    time.append(i+1)
+    time.append((i+1)*4)
 
 # expr data
 wet_weight = [0.8144, 0.7482, 0.6678, 0.6007, 0.5231, 0.4371, 0.3442, 0.2523, 0.1839, 0.1528, 0.1415]
@@ -60,6 +71,7 @@ for i in range(dry_time):
     # delete elements with same index of I_smps in I_refs
     del_index = np.where(I_smps < 0.5)
     
+    # delete saturated points
     # I_refs[del_index] = 0.5
     # I_smps[del_index] = 0.5
     # I_refs = np.delete(I_refs, del_index)
@@ -67,12 +79,15 @@ for i in range(dry_time):
 
     dB_smps = np.repeat(dB_smp[i], len(I_smps))
     dB_refs = np.repeat(dB_ref[0], len(I_refs))
+
     # dH20 mean
     dH20_all = calculate_dH20(I_refs, I_smps, dB_refs, dB_smps)
 
+    # first dH20 as variable
     if(i == 0):
         dH20_wet1 = dH20_all
 
+    # deal with calculate error
     if dH20_all[0] != 0:
         RWC_THz_all = dH20_all/dH20_wet1 * 100
     else:
@@ -88,47 +103,29 @@ for i in range(dry_time):
     RWC_THz_std_alls.append(RWC_THz_std_all)
     RWC_THz_means.append(RWC_THz_mean)
 
-    print(i)
-
-# dH20s.append(0)
-# dH20_stds.append(0)
-# RWC_THz_std_alls.append(0)
-# RWC_THz_means.append(0)
-print(len(dH20s))
-print(len(dH20_stds))
-print(len(RWC_THz_std_alls))
-print(len(RWC_THz_means))
-
-# # RWC with THz
-dH20 = calculate_dH20(I_ref, I_smp, dB_ref, dB_smp)
-RWC_THz = dH20/dH20[0] * 100
-RWC_THz_std = np.std(RWC_THz)
-
-RWC_THz = RWC_THz_means
-RWC_THz_std = RWC_THz_std_alls
-print(len(RWC_THz))
-print(len(RWC_THz_std))
 
 # RWC with gravimetric balance
 RWC_gravimetric = (wet_weight - dry_weight) / (wet_weight[0] - dry_weight) * 100
 
 plt.subplot(2, 1, 1)
 plt.scatter(time, RWC_gravimetric, label='Gravimetric', color='black')
-plt.errorbar(time, RWC_THz, yerr=RWC_THz_std, label='THz', color='green')
-plt.scatter(time, RWC_THz, label='THz', color='green')
-plt.xlabel('Time[per 4 minutes]')
-plt.ylabel('RWC(%)')
-plt.title('RWC vs Time')
+plt.errorbar(time, RWC_THz_means, yerr=RWC_THz_std_alls, color='green', fmt='o')
+plt.scatter(time, RWC_THz_means, label='THz', color='green')
+plt.xlabel('Dry Time[min]')
+plt.ylabel('Relative Water Content[%]')
+plt.title('RWC aginst Dry Time for Single Leaf')
 plt.legend()
 plt.tight_layout()
 # plt.show()
 
 plt.subplot(2, 1, 2)
-plt.scatter(time, dH20*10, label='dH20', color='red')
-# plt.errorbar(time, dH20, yerr=dH20_stds, label='dH20', color='red')
-plt.xlabel('Time( * 4 mins)')
-plt.ylabel('Water Layer Thickness(mm)')
-plt.title('Water Layer Thickness vs Time')
+plt.errorbar(time, dH20s, yerr=dH20_stds, color='red', fmt='o')
+plt.scatter(time, dH20s, label=r'$d_{H20}$', color='red')
+plt.xlabel('Dry Time[min]')
+plt.ylabel(r'$d_{H20}$['+dH20_unit+']')
+plt.title(r'Water Layer Thickness aginst Dry Time for Single Leaf')
 plt.legend()
 plt.tight_layout()
 plt.show()
+
+#%%
