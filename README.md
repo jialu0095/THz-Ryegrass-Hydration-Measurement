@@ -1,21 +1,36 @@
+# Description
 The overall aim of this project is to demonstrate the feasibility of measuring water 
 status in ryegrass non-destructively using THz spectroscopy.
 
-Data: 
-THz spectroscopy measurements of ryegrass. 
+Data: THz spectroscopy measurements of ryegrass. 
 Desired Output: 
-a) THz spectroscopy measurements of a large variety of ryegrass plants with 
+* THz spectroscopy measurements of a large variety of ryegrass plants with 
 different morphology and genotype. 
-b) Code-based automated analysis of the acquired data with insight into 
+* Code-based automated analysis of the acquired data with insight into 
 reproducibility and uncertainty analysis. 
 
-Naming: thz_data/script
+# File docs
+thz_XXXX.py: scripts that require THz camera and THz source API
 
-thz_ python scripts:
-    data2RGB: monologue RGB data with one-channel data(read from API)
-    img_process: same as data2RGB but on sftw data files    
-    
-    get_img: read data from the camera and store data file and img(gray-scale, jet)
-    source_adjust: adjust attenuation
-    combine_atnu_img: script that will auto-adjust attenuation based on the pixels
-    plot_atnu_pix: plot the relationships btw attenuation and pixel value
+## Data fetching & Processing
+* thz_get_data.py: save pixel value data file
+* thz_get_img.py: save pixel value img and data file
+* thz_plot_atnu_pix.py: plot pixel_avrg vs atnu(0~40)
+* thz_atnu_pix_fit.py: fit the pixel_avrg vs atnu plot with intensity equasion
+* img_plants_0dB: img of plants in 0 dB
+* test_imgs: img of test pixel plots(for the rotation problem)
+* plot_pix_atnu: plot of pix against atnu
+
+## Water layer expr
+* thz_wtrexpr_getAPIdata.py: save water expr API data to water_layer_expr_API
+* wtrexpr_alpha.py: calculate dH20 based on data from water_layer_expr_API and plot the result
+* water_layer_expr_API: pixel value and atnu data acquire form API
+* (not in use)wtrexpr_equation_sftw.py: calculate dH20 based on data from water_layer_expr and plot the result
+* (not in use)water_layer_expr: pixel value and atnu data acquire form software
+
+## Leaf expr
+* thz_leafexpr_selectpix.py: select working area and save the index in leaf_expr_API/working_index.txt
+* thz_leafexpr_getAPIdata.py: save leaf expr API data to leaf_expr_API
+* leafexpr_dH20.py: calculate dH20, RWC_gravimetric, RWC_THz and make plots using the data from leaf_expr_API
+* (to be used later)thz_leafexpr_getAPIdata2.py: save leaf expr API data to leaf_expr_API pixel by pixel
+* leaf_expxr_API: expr data files
