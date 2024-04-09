@@ -65,7 +65,7 @@ start_attenuation_value = 15
 attenuation_step = 0.1
 top_elements = 10
 
-test_group = 'dry'
+test_group = 'empty'
 wet_title = "wet9"
 
 dry_title = "dry"
@@ -125,6 +125,8 @@ try:
     #     plt.title(dry_title)
     #     plt.show()
     #     # plt.close()
+    elif(test_group == 'empty'):
+        np.savetxt('empty.txt', Is, fmt='%f')
     
 except ValueError:
     print("Error: ", ValueError)
