@@ -1,13 +1,10 @@
 # Description
-The overall aim of this project is to demonstrate the feasibility of measuring water 
-status in ryegrass non-destructively using THz spectroscopy.
+The overall aim of this project is to demonstrate the feasibility of measuring water status in ryegrass non-destructively using THz spectroscopy.
 
 Data: THz spectroscopy measurements of ryegrass. 
 Desired Output: 
-* THz spectroscopy measurements of a large variety of ryegrass plants with 
-different morphology and genotype. 
-* Code-based automated analysis of the acquired data with insight into 
-reproducibility and uncertainty analysis. 
+* THz spectroscopy measurements of a large variety of ryegrass plants with different morphology and genotype. 
+* Code-based automated analysis of the acquired data with insight into reproducibility and uncertainty analysis. 
 
 # File docs
 thz_XXXX.py: scripts that require THz camera and THz source API
@@ -21,16 +18,19 @@ thz_XXXX.py: scripts that require THz camera and THz source API
 * test_imgs: img of test pixel plots(for the rotation problem)
 * plot_pix_atnu: plot of pix against atnu
 
-## Water layer expr
+## Water penetration layer expr
 * thz_wtrexpr_getAPIdata.py: save water expr API data to water_layer_expr_API
 * wtrexpr_alpha.py: calculate dH20 based on data from water_layer_expr_API and plot the result
 * water_layer_expr_API: pixel value and atnu data acquire form API
 * (not in use)wtrexpr_equation_sftw.py: calculate dH20 based on data from water_layer_expr and plot the result
 * (not in use)water_layer_expr: pixel value and atnu data acquire form software
 
-## Leaf expr
+## Leaf penetration expr
 * thz_leafexpr_selectpix.py: select working area and save the index in leaf_expr_API/working_index.txt
 * thz_leafexpr_getAPIdata.py: save leaf expr API data to leaf_expr_API
 * leafexpr_dH20.py: calculate dH20, RWC_gravimetric, RWC_THz and make plots using the data from leaf_expr_API
-* (to be used later)thz_leafexpr_getAPIdata2.py: save leaf expr API data to leaf_expr_API pixel by pixel
 * leaf_expxr_API: expr data files
+
+## Plant penetration expr
+
+* plant_expr_API: expr data files

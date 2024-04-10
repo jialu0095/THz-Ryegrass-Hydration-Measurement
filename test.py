@@ -12,3 +12,6 @@ print(os.getcwd())
 working_index = np.loadtxt('working_index.txt', delimiter=' ', comments='#').astype(int)
 print(working_index)
 # %%
+wet_I_title='wet'
+print(f'{wet_I_title}.txt')
+# %%

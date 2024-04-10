@@ -12,6 +12,9 @@ serialPort.write(b':OUTP:ATT 15\r')
 
 res = serialPort.read(100)            ###   you always need to read a response after the write even if the command does not return anything.
 
+# for i in range(1, 15):
+#     serialPort.write(b':OUTP:ATT ' + str(i).encode() + b'\r')              
+#     res = serialPort.read(100)          
 
 if res==b'\r':                                  ### empty string is returned if there should be no response and everything is OK
     print('OK')
