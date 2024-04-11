@@ -67,7 +67,7 @@ n_pixels = (x_right - x_left + 1) * (y_bottom - y_top  + 1)
 alphas = []
 d_H2O = 0.02
 saturated_threshold = 0.5
-start_attenuation_value = 3
+start_attenuation_value = 8
 attenuation_step = 0.1
 top_elements = 10
 nonsat_pixel_value = 0
@@ -78,14 +78,14 @@ I_wets = []
 dB_drys = []
 dB_wets = []
 
-test_group = 'wet'
+test_group = 'dry'
 group_number = "1"
 
 wet_I_title = "wet_I" + group_number
 wet_dB_title = "wet_dB"+ group_number
 
-dry_I_title = "dry"
-dry_dB_title = "dry"
+dry_I_title = "dry_I"
+dry_dB_title = "dry_dB"
 
 try:
     print("-----------------------------------")
@@ -112,20 +112,41 @@ try:
     Is = data_blocks
 
     for block in range(0, 64):
+        # initial settings
         set_attenuation(serialPort, start_attenuation_value)
         attenuation_value = query_attenuation(serialPort)
         print("-----------------------------------")
         print_attenuation(attenuation_value)
-        print("Block:", block, "of", len(data_blocks), "blocks")
+        print("Block:", block+1, "of", len(data_blocks), "blocks")
+
+        flag = True
+
+        data = proc.read() - bg_data
+        data_blocks = create_block_data(data)
+        data_block = data_blocks[block]
+        block_value = np.mean(data_block)
+
+        if(block_value > saturated_threshold):
+            if test_group == 'wet':   
+                I_wets.append(block_value)
+                dB_wets.append(attenuation_value)
+                flag = False
+            elif test_group == 'dry':
+                I_drys.append(block_value) 
+                dB_drys.append(attenuation_value)
+                flag = False
 
         # collect block avrg value and atnu of just not saturated pixel
-        flag = True
         while flag:
             set_attenuation(serialPort, attenuation_value-attenuation_step)  # alter attenuation
             attenuation_value = query_attenuation(serialPort)
             
             # get data and change to block data
             data = proc.read() - bg_data
+
+            # maybe remove outlier here?
+            # need the died plant to compare
+
             data_blocks = create_block_data(data)
             data_block = data_blocks[block]
             block_value = np.mean(data_block)
@@ -152,10 +173,12 @@ try:
         Is = np.array(I_wets)
         np.savetxt(f'{wet_I_title}.txt', I_wets, fmt='%f')
         np.savetxt(f'{wet_dB_title}.txt', dB_wets, fmt='%f')
+        print("data saved")
     elif(test_group == 'dry'):
         Is = np.array(I_drys)
         np.savetxt(f'{dry_I_title}.txt', I_drys, fmt='%f')
         np.savetxt(f'{dry_dB_title}.txt', dB_drys, fmt='%f')
+        print("data saved")
 
     # plot the data
     Is = Is.reshape((x_shape, y_shape))  # reshape for plot
