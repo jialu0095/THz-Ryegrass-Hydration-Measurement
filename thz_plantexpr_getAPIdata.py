@@ -67,7 +67,7 @@ n_pixels = (x_right - x_left + 1) * (y_bottom - y_top  + 1)
 alphas = []
 d_H2O = 0.02
 saturated_threshold = 0.5
-start_attenuation_value = 8
+start_attenuation_value = 14
 attenuation_step = 0.1
 top_elements = 10
 nonsat_pixel_value = 0
@@ -79,13 +79,18 @@ dB_drys = []
 dB_wets = []
 
 test_group = 'dry'
-group_number = "1"
+group_number = "3"
 
 wet_I_title = "wet_I" + group_number
 wet_dB_title = "wet_dB"+ group_number
 
-dry_I_title = "dry_I"
-dry_dB_title = "dry_dB"
+dry_I_title = "dry_I" + group_number
+dry_dB_title = "dry_dB" + group_number
+
+if(test_group == 'empty'):
+    dry_I_title = "empty_I"
+    dry_dB_title = "empty_dB"
+
 
 try:
     print("-----------------------------------")
@@ -131,7 +136,7 @@ try:
                 I_wets.append(block_value)
                 dB_wets.append(attenuation_value)
                 flag = False
-            elif test_group == 'dry':
+            elif test_group == 'dry' or test_group == 'empty':
                 I_drys.append(block_value) 
                 dB_drys.append(attenuation_value)
                 flag = False
@@ -158,7 +163,7 @@ try:
                     I_wets.append(nonsat_pixel_value)
                     dB_wets.append(attenuation_value)
                     flag = False
-                elif test_group == 'dry':
+                elif test_group == 'dry' or test_group == 'empty':
                     I_drys.append(nonsat_pixel_value) 
                     dB_drys.append(attenuation_value)
                     flag = False
@@ -174,7 +179,7 @@ try:
         np.savetxt(f'{wet_I_title}.txt', I_wets, fmt='%f')
         np.savetxt(f'{wet_dB_title}.txt', dB_wets, fmt='%f')
         print("data saved")
-    elif(test_group == 'dry'):
+    elif(test_group == 'dry' or test_group == 'empty'):
         Is = np.array(I_drys)
         np.savetxt(f'{dry_I_title}.txt', I_drys, fmt='%f')
         np.savetxt(f'{dry_dB_title}.txt', dB_drys, fmt='%f')

@@ -32,5 +32,6 @@ thz_XXXX.py: scripts that require THz camera and THz source API
 * leaf_expxr_API: expr data files
 
 ## Plant penetration expr
-
+* thz_plantexpr_getAPIdata.py: save plant expr API data to plant_expr_API
+* plantexpr_dH20.py: calculate avarage attenuation and RWC, and make plots
 * plant_expr_API: expr data files
