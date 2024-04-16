@@ -67,7 +67,7 @@ n_pixels = (x_right - x_left + 1) * (y_bottom - y_top  + 1)
 alphas = []
 d_H2O = 0.02
 saturated_threshold = 0.5
-start_attenuation_value = 14
+start_attenuation_value = 10
 attenuation_step = 0.1
 top_elements = 10
 nonsat_pixel_value = 0
@@ -129,6 +129,10 @@ try:
         data = proc.read() - bg_data
         data_blocks = create_block_data(data)
         data_block = data_blocks[block]
+        # remove empty pixel
+        data_block_I0 = 10**(attenuation_value/10)*data_block
+        indices = np.where(data_block_I0 > 6.65670506)[0]
+        data_block = np.delete(data_block, indices)
         block_value = np.mean(data_block)
 
         if(block_value > saturated_threshold):
@@ -154,11 +158,18 @@ try:
 
             data_blocks = create_block_data(data)
             data_block = data_blocks[block]
+
+            # remove empty pixel
+            data_block_I0 = 10**(attenuation_value/10)*data_block
+            indices = np.where(data_block_I0 > 6.65670506)[0]
+            data_block = np.delete(data_block, indices)
             block_value = np.mean(data_block)
 
             # if saturated, then stop
             print(block_value, attenuation_value, flag)
             if(block_value > saturated_threshold or attenuation_value <= attenuation_step):
+                print(len(indices))
+                print(data_block_I0)
                 if test_group == 'wet':   
                     I_wets.append(nonsat_pixel_value)
                     dB_wets.append(attenuation_value)
