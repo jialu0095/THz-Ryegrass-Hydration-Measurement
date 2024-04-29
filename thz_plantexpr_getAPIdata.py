@@ -39,10 +39,6 @@ res = serialPort.read(100)  # read response
 # proc instance
 proc = processor.processor(threaded=False)
 
-# set the accumulation
-# proc.SetAccumulation(True)
-# proc.SetAccuLength(1000)
-
 # worker instance
 worker = terasense.worker.Worker()
 worker.SetGamma(1)
@@ -72,24 +68,14 @@ attenuation_step = 0.1
 top_elements = 10
 nonsat_pixel_value = 0
 
-I_drys = []
-I_wets = []
-
-dB_drys = []
-dB_wets = []
+I_sat = [-1] * n_pixels
+dB_sat = [-1] * n_pixels
+pix_is_sat = [False] * n_pixels
 
 test_group = 'dry'
 group_number = "3"
-
-wet_I_title = "wet_I" + group_number
-wet_dB_title = "wet_dB"+ group_number
-
-dry_I_title = "dry_I" + group_number
-dry_dB_title = "dry_dB" + group_number
-
-if(test_group == 'empty'):
-    dry_I_title = "empty_I"
-    dry_dB_title = "empty_dB"
+plant_label = "1"
+title = test_group + group_number + '_' + plant_label
 
 
 try:
@@ -102,100 +88,41 @@ try:
 
     # remove bg noise
     data = proc.read() - bg_data
+    data_working = data[x_left:(x_right+1), y_top:(y_bottom+1)].flatten()
 
-    # to store the blocks
-    data_blocks = []
+    # initial scan
+    for index, pixel in enumerate(data_working):
+        if pixel > saturated_threshold & pix_is_sat[index] == False:
+            I_sat[index] = pixel
+            dB_sat[index] = attenuation_value
+            pix_is_sat[index] = True 
 
-    # traverse data and extract 4x4 blocks in to a 1*64 array
-    for i in range(0, 8):
-        for j in range(0, 8):
-            # extract 4x4 blocks
-            flattened_block = data[i*4:(i+1)*4, j*4:(j+1)*4].flatten()
-            # flatten the block
-            data_blocks.append(flattened_block)
-
-    Is = data_blocks
-
-    for block in range(0, 64):
-        # initial settings
-        set_attenuation(serialPort, start_attenuation_value)
+    # decrease attenuation
+    while True:
+        set_attenuation(serialPort, start_attenuation_value - attenuation_step)
         attenuation_value = query_attenuation(serialPort)
-        print("-----------------------------------")
         print_attenuation(attenuation_value)
-        print("Block:", block+1, "of", len(data_blocks), "blocks")
-
-        flag = True
-
         data = proc.read() - bg_data
-        data_blocks = create_block_data(data)
-        data_block = data_blocks[block]
-        # remove empty pixel
-        data_block_I0 = 10**(attenuation_value/10)*data_block
-        indices = np.where(data_block_I0 > 6.65670506)[0]
-        data_block = np.delete(data_block, indices)
-        block_value = np.mean(data_block)
+        data_working = data[x_left:(x_right+1), y_top:(y_bottom+1)].flatten()
 
-        if(block_value > saturated_threshold):
-            if test_group == 'wet':   
-                I_wets.append(block_value)
-                dB_wets.append(attenuation_value)
-                flag = False
-            elif test_group == 'dry' or test_group == 'empty':
-                I_drys.append(block_value) 
-                dB_drys.append(attenuation_value)
-                flag = False
+        for index, pixel in enumerate(data_working):
+            if pixel > saturated_threshold & pix_is_sat[index] == False:
+                I_sat[index] = pixel
+                dB_sat[index] = attenuation_value
+                pix_is_sat[index] = True 
 
-        # collect block avrg value and atnu of just not saturated pixel
-        while flag:
-            set_attenuation(serialPort, attenuation_value-attenuation_step)  # alter attenuation
-            attenuation_value = query_attenuation(serialPort)
-            
-            # get data and change to block data
-            data = proc.read() - bg_data
+        start_attenuation_value -= attenuation_step
 
-            # maybe remove outlier here?
-            # need the died plant to compare
-
-            data_blocks = create_block_data(data)
-            data_block = data_blocks[block]
-
-            # remove empty pixel
-            data_block_I0 = 10**(attenuation_value/10)*data_block
-            indices = np.where(data_block_I0 > 6.65670506)[0]
-            data_block = np.delete(data_block, indices)
-            block_value = np.mean(data_block)
-
-            # if saturated, then stop
-            print(block_value, attenuation_value, flag)
-            if(block_value > saturated_threshold or attenuation_value <= attenuation_step):
-                print(len(indices))
-                print(data_block_I0)
-                if test_group == 'wet':   
-                    I_wets.append(nonsat_pixel_value)
-                    dB_wets.append(attenuation_value)
-                    flag = False
-                elif test_group == 'dry' or test_group == 'empty':
-                    I_drys.append(nonsat_pixel_value) 
-                    dB_drys.append(attenuation_value)
-                    flag = False
-
-            if(flag):
-                nonsat_pixel_value = block_value
-                attenuation_value -= attenuation_step
+        if(start_attenuation_value <= 0.1):
+            break
 
 
     # save data files
-    if(test_group == 'wet'):
-        Is = np.array(I_wets)
-        np.savetxt(f'{wet_I_title}.txt', I_wets, fmt='%f')
-        np.savetxt(f'{wet_dB_title}.txt', dB_wets, fmt='%f')
-        print("data saved")
-    elif(test_group == 'dry' or test_group == 'empty'):
-        Is = np.array(I_drys)
-        np.savetxt(f'{dry_I_title}.txt', I_drys, fmt='%f')
-        np.savetxt(f'{dry_dB_title}.txt', dB_drys, fmt='%f')
-        print("data saved")
+    np.savetxt(f'I_{title}.txt', I_sat, fmt='%f')
+    np.savetxt(f'dB_{title}.txt', dB_sat, fmt='%f')
+    print("data saved")
 
+    Is = np.array(I_sat)
     # plot the data
     Is = Is.reshape((x_shape, y_shape))  # reshape for plot
     Is = np.rot90(Is)  
