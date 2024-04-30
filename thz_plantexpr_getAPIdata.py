@@ -44,8 +44,8 @@ worker = terasense.worker.Worker()
 worker.SetGamma(1)
 
 # set the working area
-x_left = 0
-x_right = 31
+x_left = 17
+x_right = 19
 y_top = 0
 y_bottom = 31
 
@@ -63,7 +63,7 @@ n_pixels = (x_right - x_left + 1) * (y_bottom - y_top  + 1)
 alphas = []
 d_H2O = 0.02
 saturated_threshold = 0.5
-start_attenuation_value = 10
+start_attenuation_value = 14
 attenuation_step = 0.1
 top_elements = 10
 nonsat_pixel_value = 0
@@ -73,8 +73,8 @@ dB_sat = [-1] * n_pixels
 pix_is_sat = [False] * n_pixels
 
 test_group = 'dry'
-group_number = "3"
-plant_label = "1"
+group_number = "1"
+plant_label = "GA66-2"
 title = test_group + group_number + '_' + plant_label
 
 
@@ -92,26 +92,36 @@ try:
 
     # initial scan
     for index, pixel in enumerate(data_working):
-        if pixel > saturated_threshold & pix_is_sat[index] == False:
+        if pixel > saturated_threshold and pix_is_sat[index] == False:
             I_sat[index] = pixel
             dB_sat[index] = attenuation_value
             pix_is_sat[index] = True 
 
     # decrease attenuation
     while True:
-        set_attenuation(serialPort, start_attenuation_value - attenuation_step)
+        data_pre = proc.read() - bg_data
+        data_working_pre = data_pre[x_left:(x_right+1), y_top:(y_bottom+1)].flatten()
+
+        set_attenuation(serialPort, attenuation_value - attenuation_step)
         attenuation_value = query_attenuation(serialPort)
         print_attenuation(attenuation_value)
+
         data = proc.read() - bg_data
         data_working = data[x_left:(x_right+1), y_top:(y_bottom+1)].flatten()
 
         for index, pixel in enumerate(data_working):
-            if pixel > saturated_threshold & pix_is_sat[index] == False:
-                I_sat[index] = pixel
+            if (pixel > saturated_threshold) and pix_is_sat[index] == False:
+                I_sat[index] = data_working_pre[index]
                 dB_sat[index] = attenuation_value
                 pix_is_sat[index] = True 
 
         start_attenuation_value -= attenuation_step
+
+        false_count = pix_is_sat.count(False)
+        print("Number of False in pix_is_sat:", false_count)
+        if all(pix_is_sat):
+            break
+
 
         if(start_attenuation_value <= 0.1):
             break
@@ -137,7 +147,7 @@ except ValueError:
     print("Error: ", ValueError)
     print("Error reading attenuation value:", res.decode().strip())
 finally:
-    set_attenuation(serialPort, 0)
+    set_attenuation(serialPort, 14)
 
 # close the serial port
 serialPort.close()
