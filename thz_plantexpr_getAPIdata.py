@@ -128,8 +128,8 @@ try:
 
 
     # save data files
-    np.savetxt(f'I_{title}.txt', I_sat, fmt='%f')
-    np.savetxt(f'dB_{title}.txt', dB_sat, fmt='%f')
+    np.savetxt(f'I_{title}.csv', I_sat, fmt='%f')
+    np.savetxt(f'dB_{title}.csv', dB_sat, fmt='%f')
     print("data saved")
 
     Is = np.array(I_sat)
