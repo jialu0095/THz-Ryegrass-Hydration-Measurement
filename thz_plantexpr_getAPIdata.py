@@ -21,14 +21,8 @@ def query_attenuation(serialPort):
 def print_attenuation(attenuation_value):
     print("Current Attenuation:", attenuation_value, "dB")
 
-# create block data
-def create_block_data(data):
-    data_blocks = []
-    for i in range(0, 8):
-        for j in range(0, 8):
-            flattened_block = data[i*4:(i+1)*4, j*4:(j+1)*4].flatten()
-            data_blocks.append(flattened_block)
-    return data_blocks
+def cal_I0(attenuation_value, pixel_value):
+    return 10**(attenuation_value/10)*pixel_value
 
 # open the serial port
 serialPort = serial.Serial(port="COM4", baudrate=115200, bytesize=8, timeout=2, stopbits=serial.STOPBITS_ONE)
@@ -44,8 +38,8 @@ worker = terasense.worker.Worker()
 worker.SetGamma(1)
 
 # set the working area
-x_left = 17
-x_right = 19
+x_left = 0
+x_right = 31
 y_top = 0
 y_bottom = 31
 
@@ -63,7 +57,6 @@ n_pixels = (x_right - x_left + 1) * (y_bottom - y_top  + 1)
 alphas = []
 d_H2O = 0.02
 saturated_threshold = 0.5
-start_attenuation_value = 14
 attenuation_step = 0.1
 top_elements = 10
 nonsat_pixel_value = 0
@@ -71,7 +64,10 @@ nonsat_pixel_value = 0
 I_sat = [-1] * n_pixels
 dB_sat = [-1] * n_pixels
 pix_is_sat = [False] * n_pixels
+pix_is_empty = [False] * n_pixels
 
+
+start_attenuation_value = 14
 test_group = 'dry'
 group_number = "1"
 plant_label = "GA66-2"
@@ -82,7 +78,8 @@ try:
     print("-----------------------------------")
 
     # set initail attenuation
-    set_attenuation(serialPort, start_attenuation_value)
+    attenuation_value = start_attenuation_value
+    set_attenuation(serialPort, attenuation_value)
     attenuation_value = query_attenuation(serialPort)
     print_attenuation(attenuation_value)
 
@@ -99,31 +96,42 @@ try:
 
     # decrease attenuation
     while True:
+        # data before altering attenuation
         data_pre = proc.read() - bg_data
         data_working_pre = data_pre[x_left:(x_right+1), y_top:(y_bottom+1)].flatten()
 
+        # decrease attenuation
         set_attenuation(serialPort, attenuation_value - attenuation_step)
         attenuation_value = query_attenuation(serialPort)
         print_attenuation(attenuation_value)
 
+        # data after altering attenuation
         data = proc.read() - bg_data
         data_working = data[x_left:(x_right+1), y_top:(y_bottom+1)].flatten()
 
+        # check for saturated pixels
         for index, pixel in enumerate(data_working):
             if (pixel > saturated_threshold) and pix_is_sat[index] == False:
                 I_sat[index] = data_working_pre[index]
                 dB_sat[index] = attenuation_value
                 pix_is_sat[index] = True 
 
-        start_attenuation_value -= attenuation_step
+        # set the decreased attenuation for next loop
+        attenuation_value -= attenuation_step
 
+        # check how many un-saturated pixel left
         false_count = pix_is_sat.count(False)
         print("Number of False in pix_is_sat:", false_count)
         if all(pix_is_sat):
             break
 
-
-        if(start_attenuation_value <= 0.1):
+        # for pixel that are still not saturated at 0.1 dB, record current pixel value
+        if(attenuation_value <= 0.1):
+            for index, pixel in enumerate(pix_is_sat):
+                if pixel == False:
+                    I_sat[index] = data_working[index]
+                    dB_sat[index] = attenuation_value
+                    pix_is_sat[index] = True 
             break
 
 
@@ -135,12 +143,14 @@ try:
     Is = np.array(I_sat)
     # plot the data
     Is = Is.reshape((x_shape, y_shape))  # reshape for plot
+    
     Is = np.rot90(Is)  
     Is = np.rot90(Is)  
     Is = np.rot90(Is)
     Is = np.fliplr(Is) 
     plt.imshow(Is, cmap='jet')  # display the data as a pesudo color img
-    plt.colorbar()  
+    plt.colorbar()
+    plt.ylim(0, 0.7)
     plt.show()
     
 except ValueError:

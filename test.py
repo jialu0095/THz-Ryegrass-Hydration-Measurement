@@ -35,3 +35,20 @@ while True:
 
 
 serialPort.close()
+
+#%%
+attenuation_value = 9.1125
+pixel_value = 0.491919609375
+I0 = 10**(attenuation_value/10)*pixel_value
+print(I0)
+
+attenuation_value = 6.45625
+pixel_value = 0.493481125
+I0 = 10**(attenuation_value/10)*pixel_value
+print(I0)
+
+attenuation_value = 10.49375 
+pixel_value = 0.49057878125
+I0 = 10**(attenuation_value/10)*pixel_value
+print(I0)
+# %%
