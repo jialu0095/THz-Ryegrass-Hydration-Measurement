@@ -1,9 +1,10 @@
+#%%
 import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-os.chdir('plant_expr_API/day1')
+os.chdir('plant_expr_API')
 
 #%%
 # output: dH20(mm)
@@ -27,22 +28,17 @@ def calculate_dH20(I_ref, I_smp, dB_ref, dB_smp):
     return dH20
 
 #%%
-# Read the CSV file
-dB_dry = pd.read_csv('dB_dry1_one55-2.csv')
-dB_wet = pd.read_csv('dB_wet1_one55-2.csv')
-dB_tur = pd.read_csv('dB_tur1_one55-2.csv')
-dB_dry = [11.7]*len(dB_dry)
+I_wet = np.loadtxt('I_wet1_One50_1.csv', delimiter=' ', comments='#')
+dB_wet = np.loadtxt('dB_wet1_One50_1.csv', delimiter=' ', comments='#')
+index = I_wet <= 0
 
-I_dry = pd.read_csv('I_dry1_one55-2.csv')
-I_wet = pd.read_csv('I_wet1_one55-2.csv')
-I_tur = pd.read_csv('I_tur1_one55-2.csv')
+I_wet = I_wet[~index]
+dB_wet = dB_wet[~index]
 
-# Rest of the code...
-d_H20_sat = calculate_dH20(I_dry, I_tur, dB_dry, dB_tur)
-d_H20_wet = calculate_dH20(I_dry, I_wet, dB_dry, dB_wet)
+print('mean: ', np.mean(I_wet))
+print('std: ', np.std(I_wet))  
 
-RWC_THz = 100 * d_H20_wet / d_H20_sat
+number_not_0 = np.count_nonzero(I_wet)
+print('number_not_0: ', number_not_0)
 
-print(np.mean(RWC_THz))
-print(np.std(RWC_THz))
 # %%

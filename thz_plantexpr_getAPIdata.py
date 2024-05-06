@@ -56,10 +56,9 @@ n_pixels = (x_right - x_left + 1) * (y_bottom - y_top  + 1)
 # variables
 alphas = []
 d_H2O = 0.02
+I_0_threshold = 4.95957
 saturated_threshold = 0.5
 attenuation_step = 0.1
-top_elements = 10
-nonsat_pixel_value = 0
 
 I_sat = [-1] * n_pixels
 dB_sat = [-1] * n_pixels
@@ -68,9 +67,9 @@ pix_is_empty = [False] * n_pixels
 
 
 start_attenuation_value = 14
-test_group = 'dry'
+test_group = 'wet'
 group_number = "1"
-plant_label = "GA66-2"
+plant_label = "GA66_1"
 title = test_group + group_number + '_' + plant_label
 
 
@@ -83,7 +82,7 @@ try:
     attenuation_value = query_attenuation(serialPort)
     print_attenuation(attenuation_value)
 
-    # remove bg noise
+    # remove bg noise3
     data = proc.read() - bg_data
     data_working = data[x_left:(x_right+1), y_top:(y_bottom+1)].flatten()
 
@@ -112,8 +111,14 @@ try:
         # check for saturated pixels
         for index, pixel in enumerate(data_working):
             if (pixel > saturated_threshold) and pix_is_sat[index] == False:
-                I_sat[index] = data_working_pre[index]
-                dB_sat[index] = attenuation_value
+                I_0 = cal_I0(attenuation_value, pixel)
+                if I_0 < I_0_threshold:
+                    I_sat[index] = pixel
+                    dB_sat[index] = attenuation_value
+                else:
+                    print(I_0)
+                    I_sat[index] = 0
+                    dB_sat[index] = attenuation_value
                 pix_is_sat[index] = True 
 
         # set the decreased attenuation for next loop

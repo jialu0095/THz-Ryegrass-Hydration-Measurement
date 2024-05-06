@@ -56,7 +56,7 @@ n_pixels = (x_right - x_left + 1) * (y_bottom - y_top  + 1)
 alphas = []
 d_H2O = 0.02
 saturated_threshold = 0.5
-start_attenuation_value = 11
+start_attenuation_value = 20
 attenuation_step = 0.1
 top_elements = 10
 nonsat_pixel_value = 0
@@ -64,7 +64,7 @@ nonsat_pixel_value = 0
 pix_is_sat = [False] * n_pixels
 I_0s = [-1]*n_pixels
 
-title = 'I_0s_dry.txt'
+title = 'I_0s_empty.txt'
 
 
 try:
@@ -124,7 +124,6 @@ try:
                     I_0s[index] = I_0
                     pix_is_sat[index] = True 
             break
-
 
     np.savetxt(title, I_0s, delimiter=' ', comments='#')
     print('data saved')
