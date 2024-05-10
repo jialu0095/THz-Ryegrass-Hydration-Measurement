@@ -70,12 +70,6 @@ for i in range(dry_time):
     
     # delete elements with same index of I_smps in I_refs
     del_index = np.where(I_smps < 0.5)
-    
-    # delete saturated points
-    # I_refs[del_index] = 0.5
-    # I_smps[del_index] = 0.5
-    # I_refs = np.delete(I_refs, del_index)
-    # I_smps = np.delete(I_smps, del_index)
 
     dB_smps = np.repeat(dB_smp[i], len(I_smps))
     dB_refs = np.repeat(dB_ref[0], len(I_refs))
@@ -83,7 +77,7 @@ for i in range(dry_time):
     # dH20 mean
     dH20_all = calculate_dH20(I_refs, I_smps, dB_refs, dB_smps)
 
-    # first dH20 as variable
+    # first dH20 as turgid dH20 variable
     if(i == 0):
         dH20_wet1 = dH20_all
 
