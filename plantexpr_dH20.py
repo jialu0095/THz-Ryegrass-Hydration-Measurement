@@ -26,7 +26,7 @@ def calculate_dH20_plant(I_ref, I_smp, dB_ref, dB_smp, group):
     if(group == 5):
         I_mean_smp = np.mean(I_smp)
     else:
-        I_mean_smp = np.mean(I_smp) - np.mean(I_smp)/2
+        I_mean_smp = np.mean(I_smp) - np.mean(I_smp)/1.3
     dB_mean_ref = np.mean(dB_ref)
     dB_mean_smp = np.mean(dB_smp)
     
@@ -42,6 +42,16 @@ def calculate_dH20_plant(I_ref, I_smp, dB_ref, dB_smp, group):
     dH20 = np.where(np.isneginf(dH20) | np.isnan(dH20), valid_values_mean, dH20)
 
     return dH20
+
+def print_mean_I(I_group, group_name):
+    for i in range(0,5):
+        I = I_group[i]
+        I = np.array(I)
+        zero_indices = np.where(I == 0)[0]
+        I = np.delete(I, zero_indices)
+        I_mean = np.mean(I)
+        print(f'{group_name} day {i+1} mean I: ', I_mean)
+
 
 #%%
 # load THz data
@@ -98,6 +108,16 @@ for i in range(0,5):
     dH20_GA66_2[i] = calculate_dH20_plant(I_GA66_2[-1], I_GA66_2[i], dB_GA66_2[-1], dB_GA66_2[i], i+1)
     dH20_GA66_3[i] = calculate_dH20_plant(I_GA66_3[-1], I_GA66_3[i], dB_GA66_3[-1], dB_GA66_3[i], i+1)
 
+#%% 
+
+print_mean_I(I_GA66_1, 'GA66-1')
+print_mean_I(I_GA66_2, 'GA66-2')
+print_mean_I(I_GA66_3, 'GA66-3')
+print_mean_I(I_One50_1, 'One50-1')
+print_mean_I(I_One50_2, 'One50-2')
+print_mean_I(I_One50_3, 'One50-3')
+
+
 #%%
 print(dH20_One50_1)
 print(dH20_One50_2) 
@@ -105,6 +125,8 @@ print(dH20_One50_3)
 print(dH20_GA66_1)
 print(dH20_GA66_2)
 print(dH20_GA66_3)
+
+# RWC_THz_One50_1 = dH20_One50_1/dH20_One50_1[-1]
 
 # %%
 # gravimetric data
