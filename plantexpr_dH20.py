@@ -69,7 +69,7 @@ def cal_mean_I0(I_group, group_name, dB_group, dB_name, current_day):
 
 
 # %%
-current_day = 7
+current_day = 8
 
 #%%
 # load THz data
