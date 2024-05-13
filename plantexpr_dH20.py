@@ -52,6 +52,32 @@ def print_mean_I(I_group, group_name):
         I_mean = np.mean(I)
         print(f'{group_name} day {i+1} mean I: ', I_mean)
 
+def print_mean_I0(I_group, group_name, dB_group, dB_name):
+    for i in range(0,5):
+        I = I_group[i]
+        dB = dB_group[i]
+        zero_indices = np.where(I == 0)[0]
+        I = np.delete(I, zero_indices)
+        dB = np.delete(dB, zero_indices)
+        I_0 = 10**(dB/10)*I
+        I_0_mean = np.mean(I_0)
+        print(f'{group_name} day {i+1} mean I_0: ', I_0_mean)
+
+def cal_mean_I0(I_group, group_name, dB_group, dB_name):
+    I_0_means = []
+    for i in range(0,5):
+        I = I_group[i]
+        dB = dB_group[i]
+        zero_indices = np.where(I == 0)[0]
+        I = np.delete(I, zero_indices)
+        dB = np.delete(dB, zero_indices)
+        I_0 = 10**(dB/10)*I
+        I_0_mean = np.mean(I_0)
+        I_0_means.append(I_0_mean)
+    return I_0_means
+
+
+# %%
 
 #%%
 # load THz data
@@ -96,8 +122,6 @@ dH20_GA66_1 = [[],[],[],[],[]]
 dH20_GA66_2 = [[],[],[],[],[]]
 dH20_GA66_3 = [[],[],[],[],[]]
 
-print(I_One50_1[-1])
-print(I_One50_1[0])
 
 for i in range(0,5):
     print(i)
@@ -117,6 +141,57 @@ print_mean_I(I_One50_1, 'One50-1')
 print_mean_I(I_One50_2, 'One50-2')
 print_mean_I(I_One50_3, 'One50-3')
 
+#%%
+print_mean_I0(I_GA66_1, 'GA66-1', dB_GA66_1, 'GA66-1')
+print_mean_I0(I_GA66_2, 'GA66-2', dB_GA66_2, 'GA66-2')
+print_mean_I0(I_GA66_3, 'GA66-3', dB_GA66_3, 'GA66-3')
+print_mean_I0(I_One50_1, 'One50-1', dB_One50_1, 'One50-1')
+print_mean_I0(I_One50_2, 'One50-2', dB_One50_2, 'One50-2')
+print_mean_I0(I_One50_3, 'One50-3', dB_One50_3, 'One50-3')
+
+I_GA66_1_I0 = cal_mean_I0(I_GA66_1, 'GA66-1', dB_GA66_1, 'GA66-1')
+I_GA66_2_I0 = cal_mean_I0(I_GA66_2, 'GA66-2', dB_GA66_2, 'GA66-2')
+I_GA66_3_I0 = cal_mean_I0(I_GA66_3, 'GA66-3', dB_GA66_3, 'GA66-3')
+I_One50_1_I0 = cal_mean_I0(I_One50_1, 'One50-1', dB_One50_1, 'One50-1')
+I_One50_2_I0 = cal_mean_I0(I_One50_2, 'One50-2', dB_One50_2, 'One50-2')
+I_One50_3_I0 = cal_mean_I0(I_One50_3, 'One50-3', dB_One50_3, 'One50-3')
+
+# Plotting I0 for each group
+fig, axs = plt.subplots(2, 3, figsize=(12, 8))
+fig.suptitle('I0 for Each Group')
+
+axs[0, 0].plot(range(1, 6), I_GA66_1_I0, marker='o')
+axs[0, 0].set_title('GA66-1')
+axs[0, 0].set_xlabel('Day')
+axs[0, 0].set_ylabel('I0')
+
+axs[0, 1].plot(range(1, 6), I_GA66_2_I0, marker='o')
+axs[0, 1].set_title('GA66-2')
+axs[0, 1].set_xlabel('Day')
+axs[0, 1].set_ylabel('I0')
+
+axs[0, 2].plot(range(1, 6), I_GA66_3_I0, marker='o')
+axs[0, 2].set_title('GA66-3')
+axs[0, 2].set_xlabel('Day')
+axs[0, 2].set_ylabel('I0')
+
+axs[1, 0].plot(range(1, 6), I_One50_1_I0, marker='o')
+axs[1, 0].set_title('One50-1')
+axs[1, 0].set_xlabel('Day')
+axs[1, 0].set_ylabel('I0')
+
+axs[1, 1].plot(range(1, 6), I_One50_2_I0, marker='o')
+axs[1, 1].set_title('One50-2')
+axs[1, 1].set_xlabel('Day')
+axs[1, 1].set_ylabel('I0')
+
+axs[1, 2].plot(range(1, 6), I_One50_3_I0, marker='o')
+axs[1, 2].set_title('One50-3')
+axs[1, 2].set_xlabel('Day')
+axs[1, 2].set_ylabel('I0')
+
+plt.tight_layout()
+plt.show()
 
 #%%
 print(dH20_One50_1)
