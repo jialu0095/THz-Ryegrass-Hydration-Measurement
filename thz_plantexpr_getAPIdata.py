@@ -68,7 +68,7 @@ pix_is_empty = [False] * n_pixels
 
 start_attenuation_value = 14
 test_group = 'wet'
-group_number = "8"
+group_number = "10"
 plant_label = "GA66_3"
 title = test_group + group_number + '_' + plant_label
 

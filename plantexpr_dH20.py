@@ -23,10 +23,7 @@ def calculate_dH20_plant(I_ref, I_smp, dB_ref, dB_smp, group):
     dB_smp = np.delete(dB_smp, zero_indices)
 
     I_mean_ref = np.mean(I_ref)
-    if(group == 5):
-        I_mean_smp = np.mean(I_smp)
-    else:
-        I_mean_smp = np.mean(I_smp) - np.mean(I_smp)/1.3
+    I_mean_smp = np.mean(I_smp)
     dB_mean_ref = np.mean(dB_ref)
     dB_mean_smp = np.mean(dB_smp)
     
@@ -69,7 +66,7 @@ def cal_mean_I0(I_group, group_name, dB_group, dB_name, current_day):
 
 
 # %%
-current_day = 8
+current_day = 10
 
 #%%
 # load THz data
@@ -186,6 +183,61 @@ print(dH20_GA66_2)
 print(dH20_GA66_3)
 
 # RWC_THz_One50_1 = dH20_One50_1/dH20_One50_1[-1]
+#%%
+def cal_RWC_THz(dH20, dH20_max):
+    RWC_THz = dH20/dH20_max
+    return RWC_THz
+
+RWC_THz_One50_1 = cal_RWC_THz(dH20_One50_1, dH20_One50_1[0])
+RWC_THz_One50_2 = cal_RWC_THz(dH20_One50_2, dH20_One50_2[0])
+RWC_THz_One50_3 = cal_RWC_THz(dH20_One50_3, dH20_One50_3[0])
+RWC_THz_GA66_1 = cal_RWC_THz(dH20_GA66_1, dH20_GA66_1[0])
+RWC_THz_GA66_2 = cal_RWC_THz(dH20_GA66_2, dH20_GA66_2[0])
+RWC_THz_GA66_3 = cal_RWC_THz(dH20_GA66_3, dH20_GA66_3[0])
+
+print(RWC_THz_One50_1)
+print(RWC_THz_One50_2)
+print(RWC_THz_One50_3)
+print(RWC_THz_GA66_1)
+print(RWC_THz_GA66_2)
+print(RWC_THz_GA66_3)
+
+# Plotting RWC_THz for each group
+fig, axs = plt.subplots(2, 3, figsize=(12, 8))
+fig.suptitle('RWC_THz for Each Group')
+
+axs[0, 0].plot(range(1, current_day+1), RWC_THz_GA66_1, marker='o')
+axs[0, 0].set_title('GA66-1')
+axs[0, 0].set_xlabel('Day')
+axs[0, 0].set_ylabel('RWC_THz')
+
+axs[0, 1].plot(range(1, current_day+1), RWC_THz_GA66_2, marker='o')
+axs[0, 1].set_title('GA66-2')
+axs[0, 1].set_xlabel('Day')
+axs[0, 1].set_ylabel('RWC_THz')
+
+axs[0, 2].plot(range(1, current_day+1), RWC_THz_GA66_3, marker='o')
+axs[0, 2].set_title('GA66-3')
+axs[0, 2].set_xlabel('Day')
+axs[0, 2].set_ylabel('RWC_THz')
+
+axs[1, 0].plot(range(1, current_day+1), RWC_THz_One50_1, marker='o')
+axs[1, 0].set_title('One50-1')
+axs[1, 0].set_xlabel('Day')
+axs[1, 0].set_ylabel('RWC_THz')
+
+axs[1, 1].plot(range(1, current_day+1), RWC_THz_One50_2, marker='o')
+axs[1, 1].set_title('One50-2')
+axs[1, 1].set_xlabel('Day')
+axs[1, 1].set_ylabel('RWC_THz')
+
+axs[1, 2].plot(range(1, current_day+1), RWC_THz_One50_3, marker='o')
+axs[1, 2].set_title('One50-3')
+axs[1, 2].set_xlabel('Day')
+axs[1, 2].set_ylabel('RWC_THz')
+
+plt.tight_layout()
+plt.show()
 
 # %%
 # gravimetric data
