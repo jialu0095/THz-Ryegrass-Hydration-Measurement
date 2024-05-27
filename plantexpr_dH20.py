@@ -23,6 +23,8 @@ def calculate_dH20_plant(I_ref, I_smp, dB_ref, dB_smp, group):
     dB_ref = np.delete(dB_ref, zero_indices)
     dB_smp = np.delete(dB_smp, zero_indices)
 
+    # if(group == 1 or group == 2):
+    #     I_smp[I_smp > 0] -= 1.5
 
     I_mean_ref = np.mean(I_ref)
     I_mean_smp = np.mean(I_smp)
@@ -156,35 +158,66 @@ plt.show()
 
 # %%
 # gravimetric data
-RWC_gravimetric_One50_1 = [97.5,98.9,95.7,94.3,93.5,96.3]
-RWC_gravimetric_One50_2 = [99.5,96.2,90.9,91.3,89.7,97.8]
-RWC_gravimetric_GA66_1 = [98.4,99.3,97.7,95.5,95.4,96.6]
-RWC_gravimetric_GA66_2 = [99.0,95.7,96.7,94.3,90.2,95.6]
+RWC_gravimetric_One50_1 = [0.941810345,
+                            0.638513514,
+                            0.590243902,
+                            0.530612245,
+                            0.408256881,
+                            0.132867133, 0
+]
+RWC_gravimetric_One50_2 = [0.959183673,
+                            0.867132867,
+                            0.518716578,
+                            0.347280335,
+                            0.307692308,
+                            0.295918367, 0
+]
+# RWC_gravimetric_GA66_1 = [98.4,99.3,97.7,95.5,95.4,96.6]
+# RWC_gravimetric_GA66_2 = [99.0,95.7,96.7,94.3,90.2,95.6]
 
 # Plotting dH20 for each group
 fig, axs = plt.subplots(1, 2, figsize=(12, 8))
-fig.suptitle('dH20 for Each Group')
+fig.suptitle('RWC_gravimetric for Each Group')
 
-# axs[0, 0].plot(range(1, current_day+1), RWC_gravimetric_GA66_1, marker='o')
-# axs[0, 0].set_title('GA66-1')
-# axs[0, 0].set_xlabel('Day')
-# axs[0, 0].set_ylabel('RWC_gravimetric (%)')
+# 使用正确的子图索引
+axs[0].plot(range(1, current_day+1), RWC_gravimetric_One50_1, marker='o')
+axs[0].set_title('One50-1')
+axs[0].set_xlabel('Day')
+axs[0].set_ylabel('RWC_gravimetric (%)')
 
-# axs[0, 1].plot(range(1, current_day+1), RWC_gravimetric_GA66_2, marker='o')
-# axs[0, 1].set_title('GA66-2')
-# axs[0, 1].set_xlabel('Day')
-# axs[0, 1].set_ylabel('RWC_gravimetric (%)')
-
-axs[1, 0].plot(range(1, current_day+1), RWC_gravimetric_One50_1, marker='o')
-axs[1, 0].set_title('One50-1')
-axs[1, 0].set_xlabel('Day')
-axs[1, 0].set_ylabel('RWC_gravimetric (%)')
-
-axs[1, 1].plot(range(1, current_day+1), RWC_gravimetric_One50_2, marker='o')
-axs[1, 1].set_title('One50-2')
-axs[1, 1].set_xlabel('Day')
-axs[1, 1].set_ylabel('RWC_gravimetric (%)')
+axs[1].plot(range(1, current_day+1), RWC_gravimetric_One50_2, marker='o')
+axs[1].set_title('One50-2')
+axs[1].set_xlabel('Day')
+axs[1].set_ylabel('RWC_gravimetric (%)')
 
 plt.tight_layout()
 plt.show()
+
+# %%
+# plot RWC_THz and RWC_gravimetric
+import matplotlib.pyplot as plt
+
+# plot
+fig, axs = plt.subplots(1, 2, figsize=(12, 8))
+fig.suptitle('RWC Comparisons for Each Group')
+
+# One50-1
+axs[0].plot(range(1, current_day+1), RWC_gravimetric_One50_1, marker='o', color='blue', label='RWC_gravimetric')
+axs[0].plot(range(1, current_day+1), RWC_THz_One50_1, marker='o', color='red', label='RWC_THz')
+axs[0].set_title('One50-1')
+axs[0].set_xlabel('Day')
+axs[0].set_ylabel('RWC (%)')
+axs[0].legend()
+
+# One50-2
+axs[1].plot(range(1, current_day+1), RWC_gravimetric_One50_2, marker='o', color='blue', label='RWC_gravimetric')
+axs[1].plot(range(1, current_day+1), RWC_THz_One50_2, marker='o', color='red', label='RWC_THz')
+axs[1].set_title('One50-2')
+axs[1].set_xlabel('Day')
+axs[1].set_ylabel('RWC (%)')
+axs[1].legend()
+
+plt.tight_layout()
+plt.show()
+
 # %%
