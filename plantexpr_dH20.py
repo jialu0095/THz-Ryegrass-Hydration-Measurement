@@ -16,6 +16,7 @@ def calculate_dH20_plant(I_ref, I_smp, dB_ref, dB_smp, group):
     dB_ref = np.array(dB_ref)
     dB_smp = np.array(dB_smp)
 
+    # remove empty pixels
     zero_indices = np.where((I_ref == 0) | (I_smp == 0))[0]
     print('empty pixels: ', len(zero_indices))
     I_ref = np.delete(I_ref, zero_indices)
@@ -23,9 +24,7 @@ def calculate_dH20_plant(I_ref, I_smp, dB_ref, dB_smp, group):
     dB_ref = np.delete(dB_ref, zero_indices)
     dB_smp = np.delete(dB_smp, zero_indices)
 
-    # if(group == 1 or group == 2):
-    #     I_smp[I_smp > 0] -= 1.5
-
+    # get mean value
     I_mean_ref = np.mean(I_ref)
     I_mean_smp = np.mean(I_smp)
     dB_mean_ref = np.mean(dB_ref)
@@ -33,8 +32,9 @@ def calculate_dH20_plant(I_ref, I_smp, dB_ref, dB_smp, group):
 
     print(f'dB_mean_smpl: {dB_mean_smp}')
     
-    dH20 = (np.log(I_mean_ref / I_mean_smp) + 0.1*np.log(10) * (dB_mean_ref - dB_mean_smp)) / 85 # cm
+    # calculate dH20
     # dH20 = (np.log(I_ref / I_smp) + 0.1*np.log(10) * (dB_ref - dB_smp)) / 85 # cm
+    dH20 = (np.log(I_mean_ref / I_mean_smp) + 0.1*np.log(10) * (dB_mean_ref - dB_mean_smp)) / 85 # cm
     dH20 *= 10 # cm to mm
     # mm to um
     if dH20_unit == 'um':
@@ -46,8 +46,8 @@ def calculate_dH20_plant(I_ref, I_smp, dB_ref, dB_smp, group):
 
     return dH20
 
-def print_mean_I0(I_group, group_name, dB_group, dB_name, current_day):
-    for i in range(0,current_day):
+def print_mean_I0(I_group, group_name, dB_group, dB_name, times):
+    for i in range(0,times):
         I = I_group[i]
         dB = dB_group[i]
         zero_indices = np.where(I == 0)[0]
@@ -57,9 +57,9 @@ def print_mean_I0(I_group, group_name, dB_group, dB_name, current_day):
         I_0_mean = np.mean(I_0)
         print(f'{group_name} day {i+1} mean I_0: ', I_0_mean)
 
-def cal_mean_I0(I_group, group_name, dB_group, dB_name, current_day):
+def cal_mean_I0(I_group, group_name, dB_group, dB_name, times):
     I_0_means = []
-    for i in range(0,current_day):
+    for i in range(0,times):
         I = I_group[i]
         dB = dB_group[i]
         zero_indices = np.where(I == 0)[0]
@@ -70,22 +70,79 @@ def cal_mean_I0(I_group, group_name, dB_group, dB_name, current_day):
         I_0_means.append(I_0_mean)
     return I_0_means
 
+def cal_RWC_THz(dH20, dH20_max):
+    RWC_THz = dH20/dH20_max
+    return RWC_THz
 
+#%%
+# load THz data from csv filess
+# attenuation(dB), intensity(I)
+def load_THz_data(species, plant_number, times):
+    I = [[] for _ in range(times)]
+    dB = [[] for _ in range(times)]
+    for i in range(0,times):
+        I[i] = np.loadtxt('I_wet' + str(i+1) + '_' + species + '_' + plant_number + '.csv', delimiter=' ', comments='#')
+        dB[i] = np.loadtxt('dB_wet' + str(i+1) + '_' + species + '_' + plant_number + '.csv', delimiter=' ', comments='#')
+    return I, dB
+
+# calculate dH20 for all dry times
+def cal_all_dH20(I, dB, times):
+    dH20 = [[] for _ in range(times)]
+    for i in range(0,times):
+        dH20[i] = calculate_dH20_plant(I[-1], I[i], dB[-1], dB[i], i+1)
+    return dH20
+
+def plot_multiple_graphs(y_arrays, times, titles):
+    """
+    Create multiple charts in a single row of subplots.
+
+    Parameters:
+    - y_arrays : list of y-value arrays for each chart
+    - times : current dry time, used to determine the range of the x-axis
+    - titles : list of titles for each chart
+    """
+    n = len(y_arrays)   # number of charts
+    fig, axs = plt.subplots(1, n, figsize=(6*n, 8))  # create n subplots in a row
+    fig.suptitle('RWC_THz for Each Group')
+
+    x_values = range(1, times + 1)
+    
+    for i in range(n):
+        axs[i].plot(x_values, y_arrays[i], marker='o')
+        axs[i].set_title(titles[i])
+        axs[i].set_xlabel('Time[/20mins]')
+        axs[i].set_ylabel('RWC_THz[%]')
+
+    plt.tight_layout()
+    plt.show()
+
+# all in one functions
+def THz_results(species, plant_number, times):
+    I, dB = load_THz_data(species, plant_number, times)
+    dH20 = cal_all_dH20(I, dB, times)
+    RWC_THz = cal_RWC_THz(dH20, dH20[0])
+    return RWC_THz
 # %%
-current_day = 7
+times = 7
+RWC_THz_One50_3 = THz_results('One50', '3', times)
+plot_multiple_graphs([RWC_THz_One50_3], times, ['One50-3'])
+# Print RWC_THz_One50_3 vertically
+for value in RWC_THz_One50_3:
+    print(value)
 
+#%%
 # load THz data
-I_One50_1 = [[] for _ in range(current_day)]
-I_One50_2 = [[] for _ in range(current_day)]
-# I_GA66_1 = [[] for _ in range(current_day)]
-# I_GA66_2 = [[] for _ in range(current_day)]
+I_One50_1 = [[] for _ in range(times)]
+I_One50_2 = [[] for _ in range(times)]
+# I_GA66_1 = [[] for _ in range(times)]
+# I_GA66_2 = [[] for _ in range(times)]
 
-dB_One50_1 = [[] for _ in range(current_day)]
-dB_One50_2 = [[] for _ in range(current_day)]
-# dB_GA66_1 = [[] for _ in range(current_day)]
-# dB_GA66_2 = [[] for _ in range(current_day)]
+dB_One50_1 = [[] for _ in range(times)]
+dB_One50_2 = [[] for _ in range(times)]
+# dB_GA66_1 = [[] for _ in range(times)]
+# dB_GA66_2 = [[] for _ in range(times)]
 
-for i in range(0,current_day):
+for i in range(0,times):
     print(i)
     I_One50_1[i] = np.loadtxt('I_wet'+str(i+1)+'_One50_1.csv', delimiter=' ', comments='#')
     I_One50_2[i] = np.loadtxt('I_wet'+str(i+1)+'_One50_2.csv', delimiter=' ', comments='#')
@@ -101,13 +158,13 @@ for i in range(0,current_day):
 
 #%%
 # calculate dH20
-dH20_One50_1 = [[] for _ in range(current_day)]
-dH20_One50_2 = [[] for _ in range(current_day)]
-# dH20_GA66_1 = [[] for _ in range(current_day)]
-# dH20_GA66_2 = [[] for _ in range(current_day)]
+dH20_One50_1 = [[] for _ in range(times)]
+dH20_One50_2 = [[] for _ in range(times)]
+# dH20_GA66_1 = [[] for _ in range(times)]
+# dH20_GA66_2 = [[] for _ in range(times)]
 
 
-for i in range(0,current_day):
+for i in range(0,times):
     print(i)
     dH20_One50_1[i] = calculate_dH20_plant(I_One50_1[-1], I_One50_1[i], dB_One50_1[-1], dB_One50_1[i], i+1)
     dH20_One50_2[i] = calculate_dH20_plant(I_One50_2[-1], I_One50_2[i], dB_One50_2[-1], dB_One50_2[i], i+1)
@@ -125,9 +182,7 @@ print(dH20_One50_2)
 
 # RWC_THz_One50_1 = dH20_One50_1/dH20_One50_1[-1]
 #%%
-def cal_RWC_THz(dH20, dH20_max):
-    RWC_THz = dH20/dH20_max
-    return RWC_THz
+
 
 RWC_THz_One50_1 = cal_RWC_THz(dH20_One50_1, dH20_One50_1[0])
 RWC_THz_One50_2 = cal_RWC_THz(dH20_One50_2, dH20_One50_2[0])
@@ -142,12 +197,12 @@ print(RWC_THz_One50_2)
 fig, axs = plt.subplots(1, 2, figsize=(12, 8))
 fig.suptitle('RWC_THz for Each Group')
 
-axs[0].plot(range(1, current_day+1), RWC_THz_One50_1, marker='o')
+axs[0].plot(range(1, times+1), RWC_THz_One50_1, marker='o')
 axs[0].set_title('One50-1')
 axs[0].set_xlabel('Day')
 axs[0].set_ylabel('RWC_THz')
 
-axs[1].plot(range(1, current_day+1), RWC_THz_One50_2, marker='o')
+axs[1].plot(range(1, times+1), RWC_THz_One50_2, marker='o')
 axs[1].set_title('One50-2')
 axs[1].set_xlabel('Day')
 axs[1].set_ylabel('RWC_THz')
@@ -180,12 +235,12 @@ fig, axs = plt.subplots(1, 2, figsize=(12, 8))
 fig.suptitle('RWC_gravimetric for Each Group')
 
 # 使用正确的子图索引
-axs[0].plot(range(1, current_day+1), RWC_gravimetric_One50_1, marker='o')
+axs[0].plot(range(1, times+1), RWC_gravimetric_One50_1, marker='o')
 axs[0].set_title('One50-1')
 axs[0].set_xlabel('Day')
 axs[0].set_ylabel('RWC_gravimetric (%)')
 
-axs[1].plot(range(1, current_day+1), RWC_gravimetric_One50_2, marker='o')
+axs[1].plot(range(1, times+1), RWC_gravimetric_One50_2, marker='o')
 axs[1].set_title('One50-2')
 axs[1].set_xlabel('Day')
 axs[1].set_ylabel('RWC_gravimetric (%)')
@@ -202,16 +257,16 @@ fig, axs = plt.subplots(1, 2, figsize=(12, 8))
 fig.suptitle('RWC Comparisons for Each Group')
 
 # One50-1
-axs[0].plot(range(1, current_day+1), RWC_gravimetric_One50_1, marker='o', color='blue', label='RWC_gravimetric')
-axs[0].plot(range(1, current_day+1), RWC_THz_One50_1, marker='o', color='red', label='RWC_THz')
+axs[0].plot(range(1, times+1), RWC_gravimetric_One50_1, marker='o', color='blue', label='RWC_gravimetric')
+axs[0].plot(range(1, times+1), RWC_THz_One50_1, marker='o', color='red', label='RWC_THz')
 axs[0].set_title('One50-1')
 axs[0].set_xlabel('Day')
 axs[0].set_ylabel('RWC (%)')
 axs[0].legend()
 
 # One50-2
-axs[1].plot(range(1, current_day+1), RWC_gravimetric_One50_2, marker='o', color='blue', label='RWC_gravimetric')
-axs[1].plot(range(1, current_day+1), RWC_THz_One50_2, marker='o', color='red', label='RWC_THz')
+axs[1].plot(range(1, times+1), RWC_gravimetric_One50_2, marker='o', color='blue', label='RWC_gravimetric')
+axs[1].plot(range(1, times+1), RWC_THz_One50_2, marker='o', color='red', label='RWC_THz')
 axs[1].set_title('One50-2')
 axs[1].set_xlabel('Day')
 axs[1].set_ylabel('RWC (%)')
