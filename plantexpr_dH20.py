@@ -24,6 +24,12 @@ def calculate_dH20_plant(I_ref, I_smp, dB_ref, dB_smp, group):
     dB_ref = np.delete(dB_ref, zero_indices)
     dB_smp = np.delete(dB_smp, zero_indices)
 
+    # if(group == 2):
+    #     dB_smp -= 0.3
+
+    # if(group == 5):
+    #     dB_smp -= 0.3
+
     # get mean value
     I_mean_ref = np.mean(I_ref)
     I_mean_smp = np.mean(I_smp)
@@ -74,7 +80,6 @@ def cal_RWC_THz(dH20, dH20_max):
     RWC_THz = dH20/dH20_max
     return RWC_THz
 
-#%%
 # load THz data from csv filess
 # attenuation(dB), intensity(I)
 def load_THz_data(species, plant_number, times):
@@ -105,6 +110,10 @@ def plot_multiple_graphs(y_arrays, times, titles):
     fig, axs = plt.subplots(1, n, figsize=(6*n, 8))  # create n subplots in a row
     fig.suptitle('RWC_THz for Each Group')
 
+    # if only one chart, axs is not a list
+    if n == 1:
+        axs = [axs]
+
     x_values = range(1, times + 1)
     
     for i in range(n):
@@ -123,7 +132,7 @@ def THz_results(species, plant_number, times):
     RWC_THz = cal_RWC_THz(dH20, dH20[0])
     return RWC_THz
 # %%
-times = 7
+times = 13
 RWC_THz_One50_3 = THz_results('One50', '3', times)
 plot_multiple_graphs([RWC_THz_One50_3], times, ['One50-3'])
 # Print RWC_THz_One50_3 vertically

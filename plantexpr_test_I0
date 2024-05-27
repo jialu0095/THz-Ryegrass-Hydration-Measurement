@@ -34,7 +34,7 @@ def cal_mean_I0(I_group, group_name, dB_group, dB_name, current_day):
 
 
 #%%
-current_day = 12
+current_day = 13
 # load THz data
 I_One50_1 = [[] for _ in range(current_day)]
 I_GA66_1 = [[] for _ in range(current_day)]
