@@ -34,25 +34,33 @@ def cal_mean_I0(I_group, group_name, dB_group, dB_name, current_day):
 
 
 #%%
-current_day = 13
+current_day = 7
 # load THz data
 I_One50_1 = [[] for _ in range(current_day)]
-I_GA66_1 = [[] for _ in range(current_day)]
-
 dB_One50_1 = [[] for _ in range(current_day)]
+
+
+I_GA66_1 = [[] for _ in range(current_day)]
 dB_GA66_1 = [[] for _ in range(current_day)]
+I_GA66_2 = [[] for _ in range(current_day)]
+dB_GA66_2 = [[] for _ in range(current_day)]
 
 for i in range(0,current_day):
     print(i)
     
-    I_One50_1[i] = np.loadtxt('I_wet'+str(i+1)+'_One50_3.csv', delimiter=' ', comments='#')
-    # I_GA66_1[i] = np.loadtxt('I_wet'+str(i+1)+'_GA66.csv', delimiter=' ', comments='#')
-    dB_One50_1[i] = np.loadtxt('dB_wet'+str(i+1)+'_One50_3.csv', delimiter=' ', comments='#')
-    # dB_GA66_1[i] = np.loadtxt('dB_wet'+str(i+1)+'_GA66.csv', delimiter=' ', comments='#')
+    # I_One50_1[i] = np.loadtxt('I_wet'+str(i+1)+'_One50_3.csv', delimiter=' ', comments='#')
+    # dB_One50_1[i] = np.loadtxt('dB_wet'+str(i+1)+'_One50_3.csv', delimiter=' ', comments='#')
+    
+    I_GA66_1[i] = np.loadtxt('I_wet'+str(i+1)+'_GA66_1.csv', delimiter=' ', comments='#')
+    dB_GA66_1[i] = np.loadtxt('dB_wet'+str(i+1)+'_GA66_1.csv', delimiter=' ', comments='#')
+    I_GA66_2[i] = np.loadtxt('I_wet'+str(i+1)+'_GA66_2.csv', delimiter=' ', comments='#')
+    dB_GA66_2[i] = np.loadtxt('dB_wet'+str(i+1)+'_GA66_2.csv', delimiter=' ', comments='#')
+
 
 I_GA66_1_I0 = cal_mean_I0(I_GA66_1, 'GA66-1', dB_GA66_1, 'GA66-1', current_day)
-I_One50_1_I0 = cal_mean_I0(I_One50_1, 'One50-3', dB_One50_1, 'One50-3', current_day)
+I_GA66_2_I0 = cal_mean_I0(I_GA66_2, 'GA66-2', dB_GA66_2, 'GA66-2', current_day)
+print('I_GA66_1_I0: ', I_GA66_1_I0)
+print('I_GA66_2_I0: ', I_GA66_2_I0)
 
-print(I_One50_1_I0)
 
 # %%

@@ -5,7 +5,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import uncertainties.unumpy as unumpy
 
-os.chdir('plant_expr_API/all_plant_data')
+# os.chdir('plant_expr_API/One50_data')
+os.chdir('plant_expr_API/GA66_data')
 # os.chdir('plant_expr_API')
 
 #%%
