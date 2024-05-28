@@ -3,6 +3,7 @@ import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import uncertainties.unumpy as unumpy
 
 os.chdir('plant_expr_API/all_plant_data')
 # os.chdir('plant_expr_API')
@@ -11,10 +12,12 @@ os.chdir('plant_expr_API/all_plant_data')
 # output: dH20(mm)
 dH20_unit = 'mm'
 def calculate_dH20_plant(I_ref, I_smp, dB_ref, dB_smp, group):
-    I_ref = np.array(I_ref)
-    I_smp = np.array(I_smp)
-    dB_ref = np.array(dB_ref)
-    dB_smp = np.array(dB_smp)
+    # ref: dry, smp: wet
+
+    # I_ref = np.array(I_ref)
+    # I_smp = np.array(I_smp)
+    # dB_ref = np.array(dB_ref)
+    # dB_smp = np.array(dB_smp)
 
     # remove empty pixels
     zero_indices = np.where((I_ref == 0) | (I_smp == 0))[0]
@@ -24,31 +27,35 @@ def calculate_dH20_plant(I_ref, I_smp, dB_ref, dB_smp, group):
     dB_ref = np.delete(dB_ref, zero_indices)
     dB_smp = np.delete(dB_smp, zero_indices)
 
-    # if(group == 2):
-    #     dB_smp -= 0.3
+    # get std value to add uncertainty
+    I_std_ref = np.std(I_ref)
+    I_std_smp = np.std(I_smp)
+    dB_std_ref = np.std(dB_ref)
+    dB_std_smp = np.std(dB_smp)
 
-    # if(group == 5):
-    #     dB_smp -= 0.3
+    I_ref = unumpy.uarray(I_ref, [I_std_ref]*len(I_ref))
+    I_smp = unumpy.uarray(I_smp, [I_std_smp]*len(I_smp))
+    dB_ref = unumpy.uarray(dB_ref, [dB_std_ref]*len(dB_ref))
+    dB_smp = unumpy.uarray(dB_smp, [dB_std_smp]*len(dB_smp))
 
-    # get mean value
+    # # get mean value
     I_mean_ref = np.mean(I_ref)
     I_mean_smp = np.mean(I_smp)
     dB_mean_ref = np.mean(dB_ref)
     dB_mean_smp = np.mean(dB_smp)
 
-    print(f'dB_mean_smpl: {dB_mean_smp}')
+    # print(f'dB_mean_smpl: {dB_mean_smp}')
     
     # calculate dH20
-    # dH20 = (np.log(I_ref / I_smp) + 0.1*np.log(10) * (dB_ref - dB_smp)) / 85 # cm
-    dH20 = (np.log(I_mean_ref / I_mean_smp) + 0.1*np.log(10) * (dB_mean_ref - dB_mean_smp)) / 85 # cm
+    dH20 = (unumpy.log(I_mean_ref / I_mean_smp) + 0.1*unumpy.log(10) * (dB_mean_ref - dB_mean_smp)) / 85 # cm
     dH20 *= 10 # cm to mm
     # mm to um
     if dH20_unit == 'um':
         dH20 *= 1000
 
     # remove -inf nan values
-    valid_values_mean = np.nanmean(np.where(dH20 == -np.inf, np.nan, dH20))
-    dH20 = np.where(np.isneginf(dH20) | np.isnan(dH20), valid_values_mean, dH20)
+    # valid_values_mean = np.nanmean(np.where(dH20 == -np.inf, np.nan, dH20))
+    # dH20 = np.where(np.isneginf(dH20) | np.isnan(dH20), valid_values_mean, dH20)
 
     return dH20
 
@@ -76,9 +83,6 @@ def cal_mean_I0(I_group, group_name, dB_group, dB_name, times):
         I_0_means.append(I_0_mean)
     return I_0_means
 
-def cal_RWC_THz(dH20, dH20_max):
-    RWC_THz = dH20/dH20_max
-    return RWC_THz
 
 # load THz data from csv filess
 # attenuation(dB), intensity(I)
@@ -96,6 +100,15 @@ def cal_all_dH20(I, dB, times):
     for i in range(0,times):
         dH20[i] = calculate_dH20_plant(I[-1], I[i], dB[-1], dB[i], i+1)
     return dH20
+
+# def cal_RWC_THz(dH20, dH20_max):
+#     RWC_THz = dH20/dH20_max
+#     return RWC_THz
+
+def cal_RWC_THz(dH20, dH20_max):
+    RWC_THz = [d / dH20_max for d in dH20]
+    return RWC_THz
+
 
 def plot_multiple_graphs(y_arrays, times, titles):
     """
@@ -130,98 +143,45 @@ def THz_results(species, plant_number, times):
     I, dB = load_THz_data(species, plant_number, times)
     dH20 = cal_all_dH20(I, dB, times)
     RWC_THz = cal_RWC_THz(dH20, dH20[0])
+    print(f'{species}-{plant_number} RWC_THz: ', RWC_THz)
+    # return RWC_THz
     return RWC_THz
+
 # %%
+# One50-3
 times = 13
+# THz_results('One50', '3', times)
 RWC_THz_One50_3 = THz_results('One50', '3', times)
-plot_multiple_graphs([RWC_THz_One50_3], times, ['One50-3'])
-# Print RWC_THz_One50_3 vertically
-for value in RWC_THz_One50_3:
-    print(value)
 
-#%%
-# load THz data
-I_One50_1 = [[] for _ in range(times)]
-I_One50_2 = [[] for _ in range(times)]
-# I_GA66_1 = [[] for _ in range(times)]
-# I_GA66_2 = [[] for _ in range(times)]
+# get nominal values    
+RWC_THz_One50_3_nominal = unumpy.nominal_values(RWC_THz_One50_3)
+# get std values
+RWC_THz_One50_3_std = unumpy.std_devs(RWC_THz_One50_3)
+RWC_THz_One50_3_std[-1] = 0
 
-dB_One50_1 = [[] for _ in range(times)]
-dB_One50_2 = [[] for _ in range(times)]
-# dB_GA66_1 = [[] for _ in range(times)]
-# dB_GA66_2 = [[] for _ in range(times)]
+# x-axis values: times
+x_values = range(1, times + 1)
 
-for i in range(0,times):
-    print(i)
-    I_One50_1[i] = np.loadtxt('I_wet'+str(i+1)+'_One50_1.csv', delimiter=' ', comments='#')
-    I_One50_2[i] = np.loadtxt('I_wet'+str(i+1)+'_One50_2.csv', delimiter=' ', comments='#')
-    # I_GA66_1[i] = np.loadtxt('I_wet'+str(i+1)+'_GA66_1.csv', delimiter=' ', comments='#')
-    # I_GA66_2[i] = np.loadtxt('I_wet'+str(i+1)+'_GA66_2.csv', delimiter=' ', comments='#')
-    
-    dB_One50_1[i] = np.loadtxt('dB_wet'+str(i+1)+'_One50_1.csv', delimiter=' ', comments='#')
-    dB_One50_2[i] = np.loadtxt('dB_wet'+str(i+1)+'_One50_2.csv', delimiter=' ', comments='#')
-    # dB_GA66_1[i] = np.loadtxt('dB_wet'+str(i+1)+'_GA66_1.csv', delimiter=' ', comments='#')
-    # dB_GA66_2[i] = np.loadtxt('dB_wet'+str(i+1)+'_GA66_2.csv', delimiter=' ', comments='#')
-
-
-
-#%%
-# calculate dH20
-dH20_One50_1 = [[] for _ in range(times)]
-dH20_One50_2 = [[] for _ in range(times)]
-# dH20_GA66_1 = [[] for _ in range(times)]
-# dH20_GA66_2 = [[] for _ in range(times)]
-
-
-for i in range(0,times):
-    print(i)
-    dH20_One50_1[i] = calculate_dH20_plant(I_One50_1[-1], I_One50_1[i], dB_One50_1[-1], dB_One50_1[i], i+1)
-    dH20_One50_2[i] = calculate_dH20_plant(I_One50_2[-1], I_One50_2[i], dB_One50_2[-1], dB_One50_2[i], i+1)
-    # dH20_GA66_1[i] = calculate_dH20_plant(I_GA66_1[-1], I_GA66_1[i], dB_GA66_1[-1], dB_GA66_1[i], i+1)
-    # dH20_GA66_2[i] = calculate_dH20_plant(I_GA66_2[-1], I_GA66_2[i], dB_GA66_2[-1], dB_GA66_2[i], i+1)
-    
-
-
-
-#%%
-print(dH20_One50_1)
-print(dH20_One50_2) 
-# print(dH20_GA66_1)
-# print(dH20_GA66_2)
-
-# RWC_THz_One50_1 = dH20_One50_1/dH20_One50_1[-1]
-#%%
-
-
-RWC_THz_One50_1 = cal_RWC_THz(dH20_One50_1, dH20_One50_1[0])
-RWC_THz_One50_2 = cal_RWC_THz(dH20_One50_2, dH20_One50_2[0])
-# RWC_THz_GA66_1 = cal_RWC_THz(dH20_GA66_1, dH20_GA66_1[0])
-# RWC_THz_GA66_2 = cal_RWC_THz(dH20_GA66_2, dH20_GA66_2[0])
-print(RWC_THz_One50_1)
-print(RWC_THz_One50_2)
-# print(RWC_THz_GA66_1)
-# print(RWC_THz_GA66_2)
-
-# Plotting RWC_THz for each group
-fig, axs = plt.subplots(1, 2, figsize=(12, 8))
-fig.suptitle('RWC_THz for Each Group')
-
-axs[0].plot(range(1, times+1), RWC_THz_One50_1, marker='o')
-axs[0].set_title('One50-1')
-axs[0].set_xlabel('Day')
-axs[0].set_ylabel('RWC_THz')
-
-axs[1].plot(range(1, times+1), RWC_THz_One50_2, marker='o')
-axs[1].set_title('One50-2')
-axs[1].set_xlabel('Day')
-axs[1].set_ylabel('RWC_THz')
-
-plt.tight_layout()
+# plot
+plt.figure(figsize=(10, 5))  # fig size
+plt.errorbar(x_values, RWC_THz_One50_3_nominal, yerr=RWC_THz_One50_3_std, fmt='o', label='One50-3', capsize=5, elinewidth=2, markeredgewidth=2)
+plt.title('Plant One50-3')
+plt.xlabel('Time [/20mins]')
+plt.ylabel('RWC_THz [%]')
+plt.legend()  
+plt.grid(False)  
+plt.tight_layout()  
 plt.show()
 
+#%%
 
-# %%
-# gravimetric data
+# One50-1, One50-2 THz RWC results
+times = 7
+# THz_results('One50', '3', times)
+RWC_THz_One50_1 = THz_results('One50', '1', times)
+RWC_THz_One50_2 = THz_results('One50', '2', times)
+
+# One50_1 and One50_2 gravimetric data
 RWC_gravimetric_One50_1 = [0.941810345,
                             0.638513514,
                             0.590243902,
@@ -236,51 +196,76 @@ RWC_gravimetric_One50_2 = [0.959183673,
                             0.307692308,
                             0.295918367, 0
 ]
-# RWC_gravimetric_GA66_1 = [98.4,99.3,97.7,95.5,95.4,96.6]
-# RWC_gravimetric_GA66_2 = [99.0,95.7,96.7,94.3,90.2,95.6]
 
-# Plotting dH20 for each group
-fig, axs = plt.subplots(1, 2, figsize=(12, 8))
-fig.suptitle('RWC_gravimetric for Each Group')
+# Adjust the standard deviation of each measurement based on the size of this deviation 
+# to better reflect this uncertainty
 
-# 使用正确的子图索引
-axs[0].plot(range(1, times+1), RWC_gravimetric_One50_1, marker='o')
-axs[0].set_title('One50-1')
-axs[0].set_xlabel('Day')
-axs[0].set_ylabel('RWC_gravimetric (%)')
+RWC_THz_One50_1_nominal = unumpy.nominal_values(RWC_THz_One50_1)
+RWC_THz_One50_2_nominal = unumpy.nominal_values(RWC_THz_One50_2)
 
-axs[1].plot(range(1, times+1), RWC_gravimetric_One50_2, marker='o')
-axs[1].set_title('One50-2')
-axs[1].set_xlabel('Day')
-axs[1].set_ylabel('RWC_gravimetric (%)')
+# additional error factor
+additional_error_factor_One50_1 = abs(RWC_gravimetric_One50_1[0] - RWC_THz_One50_1_nominal[0]) / RWC_THz_One50_1_nominal[0]
+additional_error_factor_One50_2 = abs(RWC_gravimetric_One50_2[0] - RWC_THz_One50_2_nominal[0]) / RWC_THz_One50_2_nominal[0]
+
+RWC_THz_One50_1_std = unumpy.std_devs(RWC_THz_One50_1) * (1 + additional_error_factor_One50_1)
+RWC_THz_One50_2_std = unumpy.std_devs(RWC_THz_One50_2) * (1 + additional_error_factor_One50_2)
+
+RWC_THz_One50_1_std[-1] = 0
+RWC_THz_One50_2_std[-1] = 0
+
+
+# x-axis values: times
+x_values = range(1, times + 1)
+
+
+# %%
+
+
+# Plotting RWC_THz for each group with error bars
+fig, axs = plt.subplots(2, 1, figsize=(12, 12))
+fig.suptitle('RWC_THz for Each Group')
+
+# Plot for One50-1 with error bars
+axs[0].scatter(range(1, times+1), RWC_gravimetric_One50_1, marker='o', color='red', label='RWC_gravimetric')
+axs[0].errorbar(x_values, RWC_THz_One50_1_nominal, yerr=RWC_THz_One50_1_std, fmt='o', label='RWC_THz', capsize=5)
+axs[0].set_title('Plant One50-1')
+axs[0].set_xlabel('Time [/20mins]')
+axs[0].set_ylabel('RWC_THz [%]')
+axs[0].legend()
+
+# Plot for One50-2 with error bars
+axs[1].scatter(range(1, times+1), RWC_gravimetric_One50_2, marker='o', color='red', label='RWC_gravimetric')
+axs[1].errorbar(x_values, RWC_THz_One50_2_nominal, yerr=RWC_THz_One50_2_std, fmt='o', label='RWC_THz', capsize=5)
+axs[1].set_title('Plant One50-2')
+axs[1].set_xlabel('Time [/20mins]')
+axs[1].set_ylabel('RWC_THz [%]')
+axs[1].legend()
 
 plt.tight_layout()
 plt.show()
 
-# %%
-# plot RWC_THz and RWC_gravimetric
-import matplotlib.pyplot as plt
 
-# plot
-fig, axs = plt.subplots(1, 2, figsize=(12, 8))
-fig.suptitle('RWC Comparisons for Each Group')
 
-# One50-1
-axs[0].plot(range(1, times+1), RWC_gravimetric_One50_1, marker='o', color='blue', label='RWC_gravimetric')
-axs[0].plot(range(1, times+1), RWC_THz_One50_1, marker='o', color='red', label='RWC_THz')
-axs[0].set_title('One50-1')
-axs[0].set_xlabel('Day')
-axs[0].set_ylabel('RWC (%)')
-axs[0].legend()
 
-# One50-2
-axs[1].plot(range(1, times+1), RWC_gravimetric_One50_2, marker='o', color='blue', label='RWC_gravimetric')
-axs[1].plot(range(1, times+1), RWC_THz_One50_2, marker='o', color='red', label='RWC_THz')
-axs[1].set_title('One50-2')
-axs[1].set_xlabel('Day')
-axs[1].set_ylabel('RWC (%)')
-axs[1].legend()
+# %% 
+# seperate plot for One50-1 and One50-2
+plt.figure(figsize=(12, 6))
+plt.scatter(range(1, times+1), RWC_gravimetric_One50_1, marker='o', color='red', label='RWC_gravimetric')
+plt.errorbar(x_values, RWC_THz_One50_1_nominal, yerr=RWC_THz_One50_1_std, fmt='o', label='RWC_THz', capsize=5)
+plt.title('Plant One50-1 RWC Analysis')
+plt.xlabel('Time [/20mins]')
+plt.ylabel('RWC_THz [%]')
+plt.legend()
+plt.tight_layout()
+plt.show()
 
+plt.figure(figsize=(12, 6))
+plt.scatter(range(1, times+1), RWC_gravimetric_One50_2, marker='o', color='red', label='RWC_gravimetric')
+plt.errorbar(x_values, RWC_THz_One50_2_nominal, yerr=RWC_THz_One50_2_std, fmt='o', label='RWC_THz', capsize=5)
+plt.title('Plant One50-2 RWC Analysis')
+plt.xlabel('Time [/20mins]')
+plt.ylabel('RWC_THz [%]')
+plt.legend()
 plt.tight_layout()
 plt.show()
 
