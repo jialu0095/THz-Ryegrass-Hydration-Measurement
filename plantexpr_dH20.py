@@ -1,4 +1,4 @@
-#%%
+#%% import libraries and set working directory
 import os
 import numpy as np
 import pandas as pd
@@ -9,7 +9,7 @@ import uncertainties.unumpy as unumpy
 os.chdir('plant_expr_API/GA66_data')
 # os.chdir('plant_expr_API')
 
-#%%
+#%% functions
 # output: dH20(mm)
 dH20_unit = 'mm'
 def calculate_dH20_plant(I_ref, I_smp, dB_ref, dB_smp, group):
@@ -45,6 +45,7 @@ def calculate_dH20_plant(I_ref, I_smp, dB_ref, dB_smp, group):
     dB_mean_ref = np.mean(dB_ref)
     dB_mean_smp = np.mean(dB_smp)
 
+    print('db: ', dB_mean_smp)
     # print(f'dB_mean_smpl: {dB_mean_smp}')
     
     # calculate dH20
@@ -102,13 +103,24 @@ def cal_all_dH20(I, dB, times):
         dH20[i] = calculate_dH20_plant(I[-1], I[i], dB[-1], dB[i], i+1)
     return dH20
 
-# def cal_RWC_THz(dH20, dH20_max):
-#     RWC_THz = dH20/dH20_max
-#     return RWC_THz
-
 def cal_RWC_THz(dH20, dH20_max):
     RWC_THz = [d / dH20_max for d in dH20]
     return RWC_THz
+
+def calculate_adjusted__nominal_std(RWC_THz, RWC_gravimetric):
+    # get nominal values
+    RWC_THz_nominal = unumpy.nominal_values(RWC_THz)
+    
+    #calculate the additional error factor
+    additional_error_factor = abs(RWC_gravimetric[0] - RWC_THz_nominal[0]) / RWC_THz_nominal[0]
+    
+    # calculate standard deviation and adjust it
+    RWC_THz_adjusted_std = unumpy.std_devs(RWC_THz) * (1 + additional_error_factor)
+    
+    # set the standard deviation of the last element to 0
+    RWC_THz_adjusted_std[-1] = 0
+    
+    return RWC_THz_nominal, RWC_THz_adjusted_std
 
 
 def plot_multiple_graphs(y_arrays, times, titles):
@@ -148,7 +160,7 @@ def THz_results(species, plant_number, times):
     # return RWC_THz
     return RWC_THz
 
-# %%
+# %% One50_3 THz RWC results
 # One50-3
 times = 13
 # THz_results('One50', '3', times)
@@ -174,7 +186,7 @@ plt.grid(False)
 plt.tight_layout()  
 plt.show()
 
-#%%
+#%% One50_1 and One50_2 THz&gravimetric RWC results
 
 # One50-1, One50-2 THz RWC results
 times = 7
@@ -198,6 +210,15 @@ RWC_gravimetric_One50_2 = [0.959183673,
                             0.295918367, 0
 ]
 
+###############
+0.959183673
+0.865248227
+0.580838323
+0.540669856
+0.352941176
+0.091836735
+
+
 # Adjust the standard deviation of each measurement based on the size of this deviation 
 # to better reflect this uncertainty
 
@@ -219,7 +240,7 @@ RWC_THz_One50_2_std[-1] = 0
 x_values = range(1, times + 1)
 
 
-# %%
+# %% One50_1 and One50_2 THz&Gravimetric  RWC plots
 
 
 # Plotting RWC_THz for each group with error bars
@@ -230,7 +251,7 @@ fig.suptitle('RWC_THz for Each Group')
 axs[0].scatter(range(1, times+1), RWC_gravimetric_One50_1, marker='o', color='red', label='RWC_gravimetric')
 axs[0].errorbar(x_values, RWC_THz_One50_1_nominal, yerr=RWC_THz_One50_1_std, fmt='o', label='RWC_THz', capsize=5)
 axs[0].set_title('Plant One50-1')
-axs[0].set_xlabel('Time [/20mins]')
+axs[0].set_xlabel('Time [/30mins]')
 axs[0].set_ylabel('RWC_THz [%]')
 axs[0].legend()
 
@@ -238,7 +259,7 @@ axs[0].legend()
 axs[1].scatter(range(1, times+1), RWC_gravimetric_One50_2, marker='o', color='red', label='RWC_gravimetric')
 axs[1].errorbar(x_values, RWC_THz_One50_2_nominal, yerr=RWC_THz_One50_2_std, fmt='o', label='RWC_THz', capsize=5)
 axs[1].set_title('Plant One50-2')
-axs[1].set_xlabel('Time [/20mins]')
+axs[1].set_xlabel('Time [/30mins]')
 axs[1].set_ylabel('RWC_THz [%]')
 axs[1].legend()
 
@@ -248,7 +269,7 @@ plt.show()
 
 
 
-# %% 
+# seperate plot One50_1 and One50_2 THz&Gravimetric RWC plots
 # seperate plot for One50-1 and One50-2
 plt.figure(figsize=(12, 6))
 plt.scatter(range(1, times+1), RWC_gravimetric_One50_1, marker='o', color='red', label='RWC_gravimetric')
@@ -267,6 +288,67 @@ plt.title('Plant One50-2 RWC Analysis')
 plt.xlabel('Time [/20mins]')
 plt.ylabel('RWC_THz [%]')
 plt.legend()
+plt.tight_layout()
+plt.show()
+
+# %% GA66_1 and GA66_2 THz&gravimetric RWC results
+
+times = 8
+# GA66-1 and GA66-2 THz RWC results
+RWC_THz_GA66_1 = THz_results('GA66', '1', times)
+RWC_THz_GA66_2 = THz_results('GA66', '2', times)
+
+
+0.988095238
+0.97761194
+0.965909091
+0.935185185
+0.888888889
+0.810810811
+
+
+# GA66_1 and GA66_2 gravimetric data
+RWC_gravimetric_GA66_1 = [0.978070175,
+                            0.936090226,
+                            0.974576271,
+                            0.883802817,
+                            0.821917808,
+                            0.746153846, 0, 0
+]
+RWC_gravimetric_GA66_2 = [0.988095238,
+                            0.97761194,
+                            0.965909091,
+                            0.935185185,
+                            0.888888889,
+                            0.810810811, 0, 0
+]
+
+RWC_THz_GA66_1_nominal, RWC_THz_GA66_1_std = calculate_adjusted__nominal_std(RWC_THz_GA66_1, RWC_gravimetric_GA66_1)
+RWC_THz_GA66_2_nominal, RWC_THz_GA66_2_std = calculate_adjusted__nominal_std(RWC_THz_GA66_2, RWC_gravimetric_GA66_2)
+
+#%% GA66_1 and GA66_2 THz RWC plots
+x_values = range(1, times + 1)
+
+# Plotting RWC_THz for each group with error bars
+fig, axs = plt.subplots(2, 1, figsize=(12, 12))
+fig.suptitle('RWC_THz for Each Group')
+
+# Plot for GA66-1 with error bars
+axs[0].scatter(range(1, times+1), RWC_gravimetric_GA66_1, marker='o', color='red', label='RWC_gravimetric')
+axs[0].errorbar(x_values, RWC_THz_GA66_1_nominal, yerr=RWC_THz_GA66_1_std, fmt='o', label='RWC_THz', capsize=5)
+axs[0].set_title('Plant One50-1')
+axs[0].set_xlabel('Time [/20mins]')
+axs[0].set_ylabel('RWC_THz [%]')
+axs[0].legend()
+
+# Plot for GA66-2 with error bars
+axs[1].scatter(range(1, times+1), RWC_gravimetric_GA66_2, marker='o', color='red', label='RWC_gravimetric')
+axs[1].errorbar(x_values, RWC_THz_GA66_2_nominal, yerr=RWC_THz_GA66_2_std, fmt='o', label='RWC_THz', capsize=5)
+axs[1].set_title('Plant One50-2')
+axs[1].set_xlabel('Time [/20mins]')
+axs[1].set_ylabel('RWC_THz [%]')
+axs[1].legend()
+
 plt.tight_layout()
 plt.show()
 

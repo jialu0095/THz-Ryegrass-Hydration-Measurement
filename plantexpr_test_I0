@@ -5,6 +5,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 os.chdir('plant_expr_API')
+os.chdir('plant_expr_API\GA66_data')
 #%%
 
 def print_mean_I0(I_group, group_name, dB_group, dB_name, current_day):
